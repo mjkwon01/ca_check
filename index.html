@@ -1072,6 +1072,7 @@
       z-index: 100;
       background: rgba(0, 0, 0, 0.65);
       align-items: flex-end;
+      backdrop-filter: blur(4px);
     }
 
     .modal-overlay.open {
@@ -1114,10 +1115,100 @@
     }
 
     .modal-title {
-      margin-bottom: 8px;
       color: var(--text);
       font-size: 16px;
-      font-weight: 800;
+      font-weight: 700;
+    }
+
+    /* 2026-06-02 변경: 히스토리 상세 모달을 NAS_did 기준의 배지형 리스트 구조로 변경합니다. */
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-close {
+      padding: 4px;
+      border: 0;
+      background: none;
+      color: var(--text);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .modal-meta {
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text3);
+      font-size: 12px;
+    }
+
+    .modal-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-item:last-child {
+      border-bottom: 0;
+    }
+
+    .modal-item-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .modal-item-name {
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .modal-item-memo {
+      margin-top: 3px;
+      color: var(--warn);
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.35;
+    }
+
+    .result-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      min-width: 34px;
+      height: 24px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .result-ok-badge {
+      background: rgba(46, 204, 113, 0.12);
+      color: var(--ok);
+    }
+
+    .result-ng-badge {
+      background: rgba(231, 76, 60, 0.12);
+      color: var(--ng);
+    }
+
+    .result-skip-badge {
+      background: rgba(90, 95, 122, 0.2);
+      color: var(--text3);
+    }
+
+    .result-value-badge {
+      min-width: 58px;
+      color: var(--accent);
     }
   </style>
 </head>
@@ -1277,10 +1368,13 @@
   <!-- 상세 팝업 -->
   <div class="modal-overlay" id="detail-modal" onclick="closeDetailModal(event)">
     <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-title" id="detail-title"></div>
-      <div class="muted" id="detail-meta"></div>
-      <div id="detail-body" style="margin-top:12px;"></div>
-      <button class="btn-secondary" style="margin-top:12px;" onclick="closeDetailModalDirect()">닫기</button>
+      <!-- 2026-06-02 변경: 히스토리 상세 모달 헤더를 NAS_did 기준처럼 제목 + X 닫기 버튼으로 변경합니다. -->
+      <div class="modal-header">
+        <div class="modal-title" id="detail-title"></div>
+        <button class="modal-close" onclick="closeDetailModalDirect()">✕</button>
+      </div>
+      <div class="modal-meta" id="detail-meta"></div>
+      <div id="detail-body"></div>
     </div>
   </div>
 
@@ -1826,19 +1920,38 @@
     function showRecordDetail(record) {
       document.getElementById('detail-title').textContent = record.location;
       document.getElementById('detail-meta').textContent = `${record.date} · 점검자: ${record.inspector}`;
-      let html = '';
-      if (hasCountableMemo(record.runMemo)) {
-        html += `<div class="card"><b>점검 기록 비고</b><div class="muted">${escapeHtml(record.runMemo)}</div></div>`;
-      }
-      html += (record.items || []).map(item => {
-        const value = item.measurementValue ? ` · 값 ${escapeHtml(item.measurementValue)}` : '';
-        const memo = hasCountableMemo(item.memo) ? `<div class="muted">메모: ${escapeHtml(item.memo)}</div>` : '';
-        return `<div class="card">
-          <div><b>[${escapeHtml(item.equipment)}] ${escapeHtml(item.checkItem)}</b></div>
-          <div class="muted">결과: ${escapeHtml(item.result || '-')} ${value}</div>
-          ${memo}
+
+      // 2026-06-02 변경: 상세 모달 내용을 card 나열에서 NAS_did 기준의 modal-item + result-badge 구조로 변경합니다.
+      const runMemoHtml = hasCountableMemo(record.runMemo)
+        ? `<div class="modal-item">
+          <div class="modal-item-text">
+            <div class="modal-item-name">점검 기록 (비고)</div>
+            <div class="modal-item-memo">특이사항: ${escapeHtml(record.runMemo)}</div>
+          </div>
+        </div>`
+        : '';
+
+      const html = runMemoHtml + (record.items || []).map(item => {
+        const measurementText = String(item.measurementValue || '').trim();
+        const result = String(item.result || '').toLowerCase();
+        const isMeasurement = result === 'measurement' || !!measurementText;
+        const showMeasurementInBadge = isMeasurement && measurementText && measurementText.length <= 12;
+        const cls = result === 'ok' ? 'result-ok-badge' : result === 'ng' ? 'result-ng-badge' : 'result-skip-badge';
+        const valueCls = isMeasurement && result !== 'ok' && result !== 'ng' ? ' result-value-badge' : '';
+        const label = result === 'ok' ? '○' : result === 'ng' ? '✕' : showMeasurementInBadge ? measurementText : isMeasurement ? '값' : '-';
+        const checkItemName = item.checkItem || item.item || '';
+        const equipmentName = item.equipment || '-';
+
+        return `<div class="modal-item">
+          <div class="modal-item-text">
+            <div class="modal-item-name">[${escapeHtml(equipmentName)}] ${escapeHtml(checkItemName)}</div>
+            ${isMeasurement && !showMeasurementInBadge ? `<div class="modal-item-memo">값: ${escapeHtml(measurementText)}</div>` : ''}
+            ${hasCountableMemo(item.memo) ? `<div class="modal-item-memo">특이사항: ${escapeHtml(item.memo)}</div>` : ''}
+          </div>
+          <span class="result-badge ${cls}${valueCls}">${escapeHtml(label)}</span>
         </div>`;
       }).join('');
+
       document.getElementById('detail-body').innerHTML = html;
       document.getElementById('detail-modal').classList.add('open');
     }
