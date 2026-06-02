@@ -305,11 +305,15 @@
     }
 
     .equipment-name {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       padding: 8px 12px;
       border-radius: 4px;
-      background: var(--theme-equipment-bg);
-      color: var(--accent2);
-      border-left: 3px solid var(--accent2);
+      /* 2026-06-02 변경: 장비그룹상자 배경을 측정 강조색에서 기준 앱과 같은 포인트 배경으로 변경합니다. */
+      background: var(--accent2);
+      color: var(--text);
+      border-left: 3px solid var(--accent);
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
@@ -317,15 +321,15 @@
     }
 
     .equipment-name::after {
-      content: "접기";
-      float: right;
-      color: var(--text3);
-      font-size: 11px;
+      content: "▼";
+      color: var(--text);
+      font-size: 10px;
       font-weight: 700;
+      transition: transform 0.2s;
     }
 
     .equipment-group.collapsed .equipment-name::after {
-      content: "열기";
+      transform: rotate(-90deg);
     }
 
     .eq-items-container {
@@ -416,24 +420,64 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .ca-detail-measure-item {
+      min-width: 0;
+    }
+
+    .ca-detail-measure-label {
+      min-height: 28px;
+      margin-bottom: 4px;
+      color: var(--text3);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.2;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .measure-wrap {
       display: flex;
       align-items: center;
       min-height: 40px;
       border-radius: var(--radius-sm);
-      background: var(--theme-measure-bg);
+      /* 2026-06-02 변경: 수치입력란 배경을 노란 틴트에서 기준 앱과 같은 surface2로 변경합니다. */
+      background: var(--surface2);
+      overflow: hidden;
+    }
+
+    .ca-detail-measure-wrap {
+      display: flex;
+      align-items: center;
+      min-height: 40px;
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
       overflow: hidden;
     }
 
     .measure-input {
       width: 100%;
+      min-width: 0;
       height: 40px;
       padding: 0 10px;
       border: 0;
       background: transparent;
       color: var(--text);
       font-size: 14px;
-      text-align: center;
+      text-align: right;
+      outline: none;
+    }
+
+    .ca-detail-measure-input {
+      width: 100%;
+      min-width: 0;
+      height: 40px;
+      padding: 0 10px;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 14px;
+      text-align: right;
       outline: none;
     }
 
@@ -460,10 +504,15 @@
       outline: none;
     }
 
-    /* 2026-06-02 변경: 항목별 특이사항 입력란은 항상 숨깁니다. 변경 전: 모든 항목에서 노출. */
+    /* 2026-06-02 변경: 특이사항은 기본 숨김, X 선택 시 표시합니다. 변경 전: 항상 숨김. */
     .check-item .memo-input,
     .ca-detail-card .memo-input {
       display: none;
+    }
+
+    .check-item.result-ng .memo-input,
+    .ca-detail-card.result-ng .memo-input {
+      display: block;
     }
 
     /* 2026-06-02 변경: 측정 위치는 결과값 저장에 필요한 입력칸이라 숨김 대상에서 제외합니다. */
@@ -1416,10 +1465,10 @@
         detailItems.forEach(item => {
           const idx = item.idx;
           const checkItemName = getItemCheckName(item);
-          html += `<div>
-            <div class="ca-detail-label" title="${escapeHtml(checkItemName)}">${escapeHtml(checkItemName)}</div>
-            <div class="measure-wrap">
-              <input class="measure-input" id="measurement-${idx}" inputmode="numeric" pattern="[0-9]*"
+          html += `<div class="ca-detail-measure-item">
+            <div class="ca-detail-measure-label" title="${escapeHtml(checkItemName)}">${escapeHtml(checkItemName)}</div>
+            <div class="ca-detail-measure-wrap">
+              <input class="ca-detail-measure-input" id="measurement-${idx}" inputmode="numeric" pattern="[0-9]*"
                 placeholder="00.0" oninput="setCaDetailMeasurement(${idx}, this.value)">
             </div>
           </div>`;
@@ -1774,7 +1823,8 @@
     }
 
     function renderComplianceSection(data) {
-      const hiddenGroups = new Set(['방송실']);
+      // 2026-06-02 변경: 옥외 시설물 점검은 대시보드 점검 이행 현황에서 제외합니다.
+      const hiddenGroups = new Set(['방송실', '옥외 시설물 점검']);
       const groups = ['전체', ...(data.complianceGroups || []).filter(group => !hiddenGroups.has(group))];
       const statuses = ['전체', '이번 달 미점검', '최근 60일 미점검'];
       const rows = filterComplianceRows(data.complianceRows || []);
@@ -1963,10 +2013,13 @@
     }
 
     function filterMemoRecords(records, query, loc, eq, days) {
+      // 2026-06-02 변경: 검색어가 없으면 검색 결과 카드를 표시하지 않습니다. 변경 전: 빈 검색어가 전체를 통과.
+      if (!query) return [];
+
       const cutoff = getDateCutoff(days);
       return (records || []).filter(record => {
         const memoText = String(record.memo || '').toLowerCase();
-        const matchQuery = !query || JSON.stringify(record).toLowerCase().includes(query) || memoText.includes(query);
+        const matchQuery = JSON.stringify(record).toLowerCase().includes(query) || memoText.includes(query);
         const matchLocation = !loc || record.location === loc;
         const matchEquipment = !eq || record.equipment === eq;
         const matchPeriod = !cutoff || normalizeDateForCompare(record.date) >= cutoff;
