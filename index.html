@@ -780,6 +780,7 @@
     let runMemo = '';
     let historyCache = null;
     let memoCache = null;
+    let lastInspectionDates = {};
     let dashPeriod = 'month';
 
     document.addEventListener('DOMContentLoaded', initApp);
@@ -815,6 +816,7 @@
       const listEl = document.getElementById('location-list');
       try {
         appData = await requestJson({ action: 'init', t: Date.now() });
+        lastInspectionDates = appData.lastDates || {};
         renderLocationList();
         renderHistoryFilter();
       } catch (err) {
@@ -952,6 +954,8 @@
       const measurementOnly = isMeasurementOnlyItem(item);
       const okBtn = measurementOnly ? '' : `<button class="check-btn ok ${result === 'ok' ? 'ok-active' : ''}" id="ok-${idx}" onclick="setResult(${idx}, 'ok')">O</button>`;
       const unitText = isCaOnuMeasurementItem(item) ? '0000 → 00.00' : '';
+      const checkItemName = getItemCheckName(item);
+      const methodText = getItemMethodText(item);
       const measureHtml = measurementOnly ? `
         <div class="measure-row">
           <div class="measure-wrap">
@@ -965,8 +969,8 @@
       return `<div class="check-item" id="item-${idx}">
         <div class="check-item-top">
           <div>
-            <div class="check-title">[${escapeHtml(item.equipment || '-')}] ${escapeHtml(item.checkItem || '')}</div>
-            <div class="check-desc">${escapeHtml(item.method || '')}${item.standard ? ' · ' + escapeHtml(item.standard) : ''}</div>
+            <div class="check-title">[${escapeHtml(item.equipment || '-')}] ${escapeHtml(checkItemName)}</div>
+            <div class="check-desc">${escapeHtml(methodText)}${item.standard ? ' · ' + escapeHtml(item.standard) : ''}</div>
           </div>
           <div class="check-btns">
             ${okBtn}
@@ -1010,8 +1014,9 @@
           <div class="ca-detail-grid">`;
         detailItems.forEach(item => {
           const idx = item.idx;
+          const checkItemName = getItemCheckName(item);
           html += `<div>
-            <div class="ca-detail-label" title="${escapeHtml(item.checkItem)}">${escapeHtml(item.checkItem)}</div>
+            <div class="ca-detail-label" title="${escapeHtml(checkItemName)}">${escapeHtml(checkItemName)}</div>
             <div class="measure-wrap">
               <input class="measure-input" id="measurement-${idx}" inputmode="numeric" pattern="[0-9]*"
                 placeholder="00.0" oninput="setCaDetailMeasurement(${idx}, this.value)">
@@ -1035,7 +1040,7 @@
     }
 
     function isCaDetailLocationItem(item) {
-      return isCaDetailMeasurementItem(item) && String(item.checkItem || '').includes('측정 위치');
+      return isCaDetailMeasurementItem(item) && String(getItemCheckName(item)).includes('측정 위치');
     }
 
     function isCaOnuMeasurementItem(item) {
@@ -1044,6 +1049,14 @@
 
     function isMeasurementOnlyItem(item) {
       return isCaOnuMeasurementItem(item) || isCaDetailMeasurementItem(item);
+    }
+
+    function getItemCheckName(item) {
+      return item.checkItem || item.item || '';
+    }
+
+    function getItemMethodText(item) {
+      return item.method || item.checkMethod || item.desc || '';
     }
 
     // ========================================================================
@@ -1125,13 +1138,29 @@
         date: todayDateKey(),
         location: currentLocation,
         inspector,
+        recordMemo: runMemo,
         runMemo,
-        items: currentItems.map((item, idx) => ({
-          ...item,
-          result: checkResults[idx]?.result || '',
-          measurementValue: checkResults[idx]?.measurementValue || '',
-          memo: checkResults[idx]?.memo || ''
-        }))
+        items: currentItems.map((item, idx) => {
+          const state = checkResults[idx] || {};
+          const checkItemName = getItemCheckName(item);
+          const methodText = getItemMethodText(item);
+          return {
+            sourceRow: item.sourceRow || 0,
+            system: item.system || '',
+            equipment: item.equipment || '',
+            qty: item.qty || item.quantity || '',
+            quantity: item.qty || item.quantity || '',
+            checkItem: checkItemName,
+            item: checkItemName,
+            checkMethod: methodText,
+            method: methodText,
+            desc: methodText,
+            standard: item.standard || item.criteria || '',
+            result: state.result || '',
+            measurementValue: state.measurementValue || '',
+            memo: state.memo || ''
+          };
+        })
       };
 
       try {
@@ -1212,6 +1241,7 @@
     }
 
     function getRecentDateForLocation(location) {
+      if (lastInspectionDates[location]) return lastInspectionDates[location];
       const records = historyCache || [];
       const found = records.find(record => record.location === location);
       return found ? found.date : '기록 없음';
