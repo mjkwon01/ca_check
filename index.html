@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>CA 계획점검 테스트</title>
+  <title>CA 계획점검</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap');
 
@@ -1057,8 +1057,8 @@
          1. 상단 헤더
          ===================================================================== -->
     <header class="header">
-      <div class="header-title">CA 계획점검 테스트</div>
-      <div class="header-sub">GAS 간이 버전 · 현장 입력감 확인용</div>
+      <div class="header-title">CA 계획점검</div>
+      <div class="header-sub"></div>
     </header>
 
     <nav class="tabs">
@@ -1402,7 +1402,6 @@
       const result = checkResults[idx]?.result;
       const measurementOnly = isMeasurementOnlyItem(item);
       const okBtn = measurementOnly ? '' : `<button class="check-btn ok ${result === 'ok' ? 'ok-active' : ''}" id="ok-${idx}" onclick="setResult(${idx}, 'ok')">O</button>`;
-      const unitText = isCaOnuMeasurementItem(item) ? '0000 → 00.00' : '';
       const checkItemName = getItemCheckName(item);
       const methodText = getItemMethodText(item);
       const measureHtml = measurementOnly ? `
