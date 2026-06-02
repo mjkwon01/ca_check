@@ -143,6 +143,15 @@
       border: 1px solid var(--border);
     }
 
+    /* 2026-06-02 변경: 점검자 카드만 배경을 surface, 라벨 글자를 text2로 변경합니다. */
+    .inspector-card {
+      background: var(--surface);
+    }
+
+    .inspector-card .input-label {
+      color: var(--text2);
+    }
+
     .section-title {
       margin: 16px 0 10px;
       color: var(--surface);
@@ -177,8 +186,8 @@
       padding: 0 12px;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      background: var(--surface);
-      color: var(--text2);
+      background: var(--surface2);
+      color: var(--text);
       font-size: 14px;
       outline: none;
     }
@@ -1138,7 +1147,7 @@
            =================================================================== -->
       <section class="section active" id="sec-inspect">
         <div id="step-select">
-          <div class="card">
+          <div class="card inspector-card">
             <div class="input-row">
               <div class="input-label">점검자</div>
               <input class="input-field" id="inspector-name" placeholder="이름을 입력하세요" oninput="updateStartButton()">
