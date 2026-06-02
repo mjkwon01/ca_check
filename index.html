@@ -492,6 +492,21 @@
       color: var(--text);
     }
 
+    .history-filter {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .history-filter .filter-select {
+      flex: 1;
+      min-width: 120px;
+      background: var(--surface2);
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+
     .history-record,
     .dash-card,
     .compliance-card {
@@ -509,6 +524,14 @@
       align-items: center;
     }
 
+    .history-record-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
     .history-location,
     .dash-title,
     .compliance-location {
@@ -522,6 +545,134 @@
     .compliance-latest {
       color: var(--text3);
       font-size: 12px;
+    }
+
+    .history-meta {
+      margin-bottom: 8px;
+      color: var(--text3);
+      font-size: 12px;
+    }
+
+    .history-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .history-run-memo {
+      margin-top: 8px;
+      padding: 4px 8px;
+      border-left: 2px solid var(--accent);
+      border-radius: 0 4px 4px 0;
+      background: var(--theme-accent-background);
+      color: var(--accent);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .stat-badge {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .stat-ok {
+      background: rgba(46, 204, 113, 0.12);
+      color: var(--ok);
+    }
+
+    .stat-ng {
+      background: rgba(231, 76, 60, 0.12);
+      color: var(--ng);
+    }
+
+    .stat-memo {
+      background: rgba(243, 156, 18, 0.12);
+      color: var(--warn);
+    }
+
+    .stat-measure {
+      background: var(--theme-measure-bg);
+      color: var(--theme-measure-text);
+    }
+
+    .search-input {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+    }
+
+    .search-filter-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .search-filter-row .filter-select {
+      width: 100%;
+      min-width: 0;
+      padding: 9px 8px;
+      background: var(--surface2);
+      font-size: 12px;
+    }
+
+    .search-result {
+      margin-bottom: 10px;
+      padding: 14px;
+      border-radius: var(--radius);
+      background: var(--surface3);
+    }
+
+    .search-result-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .search-loc {
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .search-date {
+      color: var(--text3);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .search-item-name {
+      margin-bottom: 4px;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .search-memo {
+      padding: 6px 10px;
+      border-left: 2px solid var(--accent);
+      border-radius: 0 4px 4px 0;
+      background: var(--theme-accent-background);
+      color: var(--accent);
+      font-size: 12px;
+    }
+
+    .highlight {
+      padding: 0 2px;
+      border-radius: 2px;
+      background: var(--theme-highlight-bg);
     }
 
     .dash-num {
@@ -664,9 +815,10 @@
 
     <nav class="tabs">
       <button class="tab-btn active" data-tab="inspect" onclick="showTab('inspect')">점검</button>
-      <button class="tab-btn" data-tab="history" onclick="showTab('history')">이력</button>
+      <!-- 2026-06-02 변경: 탭 순서를 점검, 히스토리, 검색, 대시보드, 설정으로 복구합니다. -->
+      <button class="tab-btn" data-tab="history" onclick="showTab('history')">히스토리</button>
+      <button class="tab-btn" data-tab="memo" onclick="showTab('memo')">검색</button>
       <button class="tab-btn" data-tab="dashboard" onclick="showTab('dashboard')">대시보드</button>
-      <button class="tab-btn" data-tab="memo" onclick="showTab('memo')">메모</button>
       <button class="tab-btn" data-tab="settings" onclick="showTab('settings')">설정</button>
     </nav>
 
@@ -719,14 +871,21 @@
            3. 히스토리 화면
            =================================================================== -->
       <section class="section" id="sec-history">
-        <div class="filter-row">
+        <div class="history-filter">
           <select class="filter-select" id="history-filter-loc" onchange="renderHistory()">
-            <option value="">전체 장소</option>
+            <option value="">모든 장소</option>
           </select>
           <select class="filter-select" id="history-filter-result" onchange="renderHistory()">
-            <option value="">전체 결과</option>
+            <option value="">전체 기록</option>
             <option value="ng">X 포함</option>
-            <option value="memo">메모 있음</option>
+            <option value="memo">특이사항 있음</option>
+          </select>
+          <!-- 2026-06-02 변경: NAS_did 히스토리처럼 기간 필터를 추가합니다. -->
+          <select class="filter-select" id="history-filter-period" onchange="changeHistoryPeriod()">
+            <option value="90" selected>최근 3개월</option>
+            <option value="180">최근 6개월</option>
+            <option value="365">최근 1년</option>
+            <option value="3650">전체</option>
           </select>
         </div>
         <div id="history-list"><div class="empty">히스토리를 불러와 주세요.</div></div>
@@ -748,8 +907,20 @@
            5. 메모 검색 화면
            =================================================================== -->
       <section class="section" id="sec-memo">
-        <div class="filter-row" style="grid-template-columns:minmax(0,1fr);">
-          <input class="input-field" id="memo-query" placeholder="장소, 장비, 항목, 메모 검색" oninput="renderMemoRecords()">
+        <input class="search-input" id="memo-query" placeholder="특이사항 키워드 검색..." oninput="renderMemoRecords()">
+        <div class="search-filter-row">
+          <select class="filter-select" id="memo-filter-loc" onchange="renderMemoRecords()">
+            <option value="">모든 장소</option>
+          </select>
+          <select class="filter-select" id="memo-filter-eq" onchange="renderMemoRecords()">
+            <option value="">모든 장비</option>
+          </select>
+          <select class="filter-select" id="memo-filter-period" onchange="renderMemoRecords()">
+            <option value="90" selected>최근 3개월</option>
+            <option value="180">최근 6개월</option>
+            <option value="365">최근 1년</option>
+            <option value="3650">전체</option>
+          </select>
         </div>
         <div id="memo-list"><div class="empty">메모를 불러와 주세요.</div></div>
       </section>
@@ -804,6 +975,7 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbx1aETwl0wnZGRIZ0KGKIDt
     let checkResults = [];
     let runMemo = '';
     let historyCache = null;
+    let currentHistoryView = [];
     let memoCache = null;
     let lastInspectionDates = {};
     let dashPeriod = 'month';
@@ -1224,13 +1396,43 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbx1aETwl0wnZGRIZ0KGKIDt
       (appData.locations || []).forEach(location => {
         select.innerHTML += `<option value="${escapeHtml(location)}">${escapeHtml(location)}</option>`;
       });
+      renderMemoFilters();
+    }
+
+    function getHistoryDays() {
+      const select = document.getElementById('history-filter-period');
+      return Number((select && select.value) || 90);
+    }
+
+    function changeHistoryPeriod() {
+      historyCache = null;
+      renderHistory();
     }
 
     async function loadHistory() {
-      if (historyCache) return historyCache;
-      const data = await requestJson({ action: 'history', days: 90, t: Date.now() });
-      historyCache = data.records || [];
-      return historyCache;
+      const days = getHistoryDays();
+      if (historyCache && historyCache.days === days) return historyCache.records;
+      const data = await requestJson({ action: 'history', days, t: Date.now() });
+      historyCache = { days, records: data.records || [] };
+      return historyCache.records;
+    }
+
+    async function loadAllHistoryRecords(days = 3650) {
+      const data = await requestJson({ action: 'history', days, t: Date.now() });
+      return data.records || [];
+    }
+
+    function countMeasurementItems(items) {
+      return (items || []).filter(item => item.result === 'measurement' || String(item.measurementValue || '').trim()).length;
+    }
+
+    function renderStatBadge(className, label, count) {
+      return `<span class="stat-badge ${className}">${label} ${count}</span>`;
+    }
+
+    async function refreshHistory() {
+      historyCache = null;
+      await renderHistory();
     }
 
     async function renderHistory() {
@@ -1245,19 +1447,32 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbx1aETwl0wnZGRIZ0KGKIDt
         if (result === 'memo') records = records.filter(record => hasCountableMemo(record.runMemo) || record.items.some(item => hasCountableMemo(item.memo)));
         if (!records.length) {
           container.innerHTML = '<div class="empty">표시할 히스토리가 없습니다.</div>';
+          currentHistoryView = [];
           return;
         }
-        container.innerHTML = records.map((record, idx) => {
+        currentHistoryView = records;
+        container.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div style="font-size:12px;color:var(--text3);">총 ${records.length}건</div>
+            <button class="btn-secondary" style="width:auto;min-height:0;font-size:11px;padding:5px 10px;border-radius:var(--radius-sm);" onclick="refreshHistory()">새로고침</button>
+          </div>` + records.map((record, idx) => {
           const ngCount = record.items.filter(item => item.result === 'ng').length;
           const memoCount = record.items.filter(item => hasCountableMemo(item.memo)).length + (hasCountableMemo(record.runMemo) ? 1 : 0);
+          const okCount = record.items.filter(item => item.result === 'ok').length;
+          const measurementCount = countMeasurementItems(record.items);
           return `<div class="history-record" onclick="showDetail(${idx})">
-            <div class="history-top">
-              <div>
-                <div class="history-location">${escapeHtml(record.location)}</div>
-                <div class="history-date">${escapeHtml(record.date)} · 점검자: ${escapeHtml(record.inspector)}</div>
-              </div>
-              <div class="muted">X ${ngCount} · 메모 ${memoCount}</div>
+            <div class="history-record-top">
+              <div class="history-location">${escapeHtml(record.location)}</div>
+              <div class="history-date">${escapeHtml(record.date)}</div>
             </div>
+            <div class="history-meta">점검자: ${escapeHtml(record.inspector)}</div>
+            <div class="history-stats">
+              ${renderStatBadge('stat-ok', 'O', okCount)}
+              ${renderStatBadge('stat-ng', 'X', ngCount)}
+              ${memoCount ? renderStatBadge('stat-memo', '메모', memoCount) : ''}
+              ${measurementCount ? renderStatBadge('stat-measure', '측정값', measurementCount) : ''}
+            </div>
+            ${hasCountableMemo(record.runMemo) ? `<div class="history-run-memo">${escapeHtml(record.runMemo)}</div>` : ''}
           </div>`;
         }).join('');
       } catch (err) {
@@ -1267,13 +1482,13 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbx1aETwl0wnZGRIZ0KGKIDt
 
     function getRecentDateForLocation(location) {
       if (lastInspectionDates[location]) return lastInspectionDates[location];
-      const records = historyCache || [];
+      const records = (historyCache && historyCache.records) || [];
       const found = records.find(record => record.location === location);
       return found ? found.date : '기록 없음';
     }
 
     function showDetail(index) {
-      const records = historyCache || [];
+      const records = currentHistoryView || [];
       const record = records[index];
       if (!record) return;
       document.getElementById('detail-title').textContent = record.location;
@@ -1368,22 +1583,83 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbx1aETwl0wnZGRIZ0KGKIDt
       list.innerHTML = '<div class="empty">메모를 불러오는 중입니다.</div>';
       try {
         const query = document.getElementById('memo-query').value.trim().toLowerCase();
+        const loc = document.getElementById('memo-filter-loc').value;
+        const eq = document.getElementById('memo-filter-eq').value;
+        const period = Number(document.getElementById('memo-filter-period').value || 365);
         let records = await loadMemoRecords();
-        if (query) {
-          records = records.filter(record => JSON.stringify(record).toLowerCase().includes(query));
-        }
+        records = filterMemoRecords(records, query, loc, eq, period);
         if (!records.length) {
-          list.innerHTML = '<div class="empty">표시할 메모가 없습니다.</div>';
+          list.innerHTML = '<div class="empty">표시할 특이사항이 없습니다.</div>';
           return;
         }
-        list.innerHTML = records.map(record => `<div class="history-record">
-          <div class="history-location">${escapeHtml(record.location)} · ${escapeHtml(record.equipment || '점검 기록')}</div>
-          <div class="history-date">${escapeHtml(record.date)} · ${escapeHtml(record.checkItem || '비고')}</div>
-          <div class="muted">${escapeHtml(record.memo)}</div>
+        const visibleRecords = records.slice(0, 50);
+        const countText = records.length > visibleRecords.length ? `총 ${records.length}건 중 ${visibleRecords.length}건 표시` : `총 ${records.length}건`;
+        list.innerHTML = `<div style="font-size:12px;color:var(--text3);margin-bottom:12px;">${countText}</div>` +
+          visibleRecords.map(record => `<div class="search-result">
+          <div class="search-result-top">
+            <span class="search-loc">${escapeHtml(record.location)}</span>
+            <span class="search-date">${escapeHtml(record.date)}</span>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">점검자: ${escapeHtml(record.inspector || '-')}</div>
+          <div class="search-item-name">[${escapeHtml(record.equipment || '점검 기록')}] ${escapeHtml(record.checkItem || '비고')}</div>
+          <div class="search-memo">${highlightMemoText(record.memo, query)}</div>
         </div>`).join('');
       } catch (err) {
         list.innerHTML = `<div class="empty">메모 로드 실패<br>${escapeHtml(err.message)}</div>`;
       }
+    }
+
+    function renderMemoFilters() {
+      const locSelect = document.getElementById('memo-filter-loc');
+      const eqSelect = document.getElementById('memo-filter-eq');
+      if (!locSelect || !eqSelect) return;
+
+      locSelect.innerHTML = '<option value="">모든 장소</option>';
+      (appData.locations || []).forEach(location => {
+        locSelect.innerHTML += `<option value="${escapeHtml(location)}">${escapeHtml(location)}</option>`;
+      });
+
+      loadMemoRecords().then(records => {
+        const selected = eqSelect.value;
+        const equipments = [...new Set((records || []).map(record => record.equipment).filter(Boolean))].sort();
+        eqSelect.innerHTML = '<option value="">모든 장비</option>';
+        equipments.forEach(equipment => {
+          eqSelect.innerHTML += `<option value="${escapeHtml(equipment)}">${escapeHtml(equipment)}</option>`;
+        });
+        eqSelect.value = equipments.includes(selected) ? selected : '';
+      }).catch(() => {
+        eqSelect.innerHTML = '<option value="">모든 장비</option>';
+      });
+    }
+
+    function filterMemoRecords(records, query, loc, eq, days) {
+      const cutoff = getDateCutoff(days);
+      return (records || []).filter(record => {
+        const memoText = String(record.memo || '').toLowerCase();
+        const matchQuery = !query || JSON.stringify(record).toLowerCase().includes(query) || memoText.includes(query);
+        const matchLocation = !loc || record.location === loc;
+        const matchEquipment = !eq || record.equipment === eq;
+        const matchPeriod = !cutoff || normalizeDateForCompare(record.date) >= cutoff;
+        return matchQuery && matchLocation && matchEquipment && matchPeriod;
+      });
+    }
+
+    function getDateCutoff(days) {
+      if (!days || days >= 3650) return '';
+      const date = new Date();
+      date.setDate(date.getDate() - days);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    function normalizeDateForCompare(value) {
+      return String(value || '').slice(0, 10);
+    }
+
+    function highlightMemoText(value, query) {
+      const safeText = escapeHtml(value || '');
+      if (!query) return safeText;
+      const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return safeText.replace(new RegExp(escapedQuery, 'gi'), match => `<span class="highlight">${match}</span>`);
     }
 
     function hasCountableMemo(value) {
