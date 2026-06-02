@@ -207,8 +207,8 @@
       padding: 12px 10px;
       border: 0 solid var(--border);
       border-radius: var(--radius-sm);
-      background: var(--surface3);
-      color: var(--text);
+      background: var(--surface);
+      color: var(--text2);
       font-size: 13px;
       font-weight: 500;
       text-align: left;
@@ -796,6 +796,19 @@
       border-left: 4px solid var(--warn);
     }
 
+    .dash-card.clickable {
+      cursor: pointer;
+      transition: background 0.15s, transform 0.15s;
+    }
+
+    .dash-card.clickable:active {
+      transform: scale(0.99);
+    }
+
+    .dash-card.clickable.is-open {
+      background: var(--surface2);
+    }
+
     .dash-card-title {
       color: var(--text);
       font-size: 14px;
@@ -820,6 +833,55 @@
 
     .dash-num.memo {
       color: var(--warn);
+    }
+
+    .dash-arrow {
+      margin-left: 6px;
+      color: var(--text3);
+      font-size: 20px;
+      font-weight: 800;
+      transition: transform 0.15s;
+    }
+
+    .dash-arrow.rotated {
+      transform: rotate(90deg);
+    }
+
+    .dash-list {
+      margin: -4px 0 10px;
+      border-radius: var(--radius-sm);
+      background: var(--surface3);
+      overflow: hidden;
+    }
+
+    .dash-list-item {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dash-list-item:last-child {
+      border-bottom: 0;
+    }
+
+    .dash-list-name {
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .dash-list-sub {
+      margin-top: 3px;
+      color: var(--text3);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .dash-list-memo {
+      margin-top: 4px;
+      color: var(--warn);
+      font-size: 11px;
+      line-height: 1.35;
     }
 
     .dash-empty {
@@ -1229,6 +1291,9 @@
     let memoCache = null;
     let lastInspectionDates = {};
     let dashPeriod = 'month';
+    let dashData = null;
+    let ngOpen = false;
+    let memoOpen = false;
     let complianceGroupFilter = '전체';
     let complianceStatusFilter = '전체';
 
@@ -1785,6 +1850,7 @@
       body.innerHTML = '<div class="empty">대시보드를 불러오는 중입니다.</div>';
       try {
         const data = await requestJson({ action: 'dashboard', period: dashPeriod, t: Date.now() });
+        dashData = data;
         renderDashboard(data);
       } catch (err) {
         body.innerHTML = `<div class="empty">대시보드 로드 실패<br>${escapeHtml(err.message)}</div>`;
@@ -1801,12 +1867,16 @@
     }
 
     function renderDashboard(data) {
+      data = data || dashData || {};
       let html = '';
       // 2026-06-02 변경: NAS_did 대시보드 기준처럼 요약 라벨과 좌측 색상 라인을 사용합니다.
       html += '<div class="dash-sec-label">요약</div>';
       html += renderDashCard('점검 횟수', '선택 기간 저장 건수', data.inspectCount || 0, 'count-left', '');
-      html += renderDashCard('X 항목 수', '선택 기간 X 항목', data.ngCount || 0, 'ng-left', 'ng');
-      html += renderDashCard('특이사항 수', '선택 기간 메모', data.memoCount || 0, 'warn-left', 'memo');
+      // 2026-06-02 변경: X 항목 수와 특이사항 수 카드를 클릭하면 목록을 펼치게 합니다. 변경 전: 숫자 카드만 표시.
+      html += renderExpandableDashCard('X 항목 수', ngOpen ? '탭하여 접기' : '탭하여 목록 확인', data.ngCount || 0, 'ng-left', 'ng', 'toggleNg', ngOpen);
+      if (ngOpen) html += renderDashboardItemList(data.ngItems || [], 'X 항목이 없습니다.', false);
+      html += renderExpandableDashCard('특이사항 수', memoOpen ? '탭하여 접기' : '탭하여 목록 확인', data.memoCount || 0, 'warn-left', 'memo', 'toggleMemo', memoOpen);
+      if (memoOpen) html += renderDashboardItemList(data.memoItems || [], '특이사항이 없습니다.', true);
       html += renderComplianceSection(data);
       document.getElementById('dashboard-body').innerHTML = html;
     }
@@ -1819,6 +1889,38 @@
         </div>
         <div class="dash-num ${numClass}">${value}</div>
       </div>`;
+    }
+
+    function renderExpandableDashCard(title, subText, value, cardClass, numClass, handlerName, isOpen) {
+      return `<div class="dash-card clickable ${cardClass}${isOpen ? ' is-open' : ''}" onclick="${handlerName}()">
+        <div>
+          <div class="dash-card-title">${escapeHtml(title)}</div>
+          <div class="dash-card-sub">${escapeHtml(subText)}</div>
+        </div>
+        <div style="display:flex;align-items:center;">
+          <div class="dash-num ${numClass}">${value}</div>
+          <span class="dash-arrow${isOpen ? ' rotated' : ''}">›</span>
+        </div>
+      </div>`;
+    }
+
+    function renderDashboardItemList(items, emptyText, showMemo) {
+      if (!items.length) return `<div class="dash-empty">${escapeHtml(emptyText)}</div>`;
+      return `<div class="dash-list">${items.map(item => `<div class="dash-list-item">
+        <div class="dash-list-name">[${escapeHtml(item.equipment || '점검 기록')}] ${escapeHtml(item.checkItem || '항목 미지정')}</div>
+        <div class="dash-list-sub">${escapeHtml(item.location || '-')} · ${escapeHtml(item.date || '-')} · ${escapeHtml(item.inspector || '-')}</div>
+        ${showMemo && item.memo ? `<div class="dash-list-memo">${escapeHtml(item.memo)}</div>` : ''}
+      </div>`).join('')}</div>`;
+    }
+
+    function toggleNg() {
+      ngOpen = !ngOpen;
+      renderDashboard();
+    }
+
+    function toggleMemo() {
+      memoOpen = !memoOpen;
+      renderDashboard();
     }
 
     function renderComplianceSection(data) {
