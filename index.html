@@ -32,6 +32,13 @@
       --theme-measure-bg: rgba(255, 249, 48, 0.10);
       --theme-measure-text: #F2E205;
       --theme-accent-background: rgba(205, 99, 110, 0.06);
+      /* 2026-06-02 변경: NAS_did 대시보드의 점검 이행 현황 그룹 색상을 동일하게 맞춥니다. */
+      --compliance-tone-k1: #c8b2ee;
+      --compliance-tone-k2: #f7cf88;
+      --compliance-tone-offsite: #b8d2fb;
+      --compliance-tone-hall: #b8d2fb;
+      --compliance-tone-meeting: #bfe8c9;
+      --compliance-tone-video: #c8b2ee;
       --radius: 12px;
       --radius-sm: 8px;
     }
@@ -453,6 +460,18 @@
       outline: none;
     }
 
+    /* 2026-06-02 변경: 항목별 특이사항 입력란은 항상 숨깁니다. 변경 전: 모든 항목에서 노출. */
+    .check-item .memo-input,
+    .ca-detail-card .memo-input {
+      display: none;
+    }
+
+    /* 2026-06-02 변경: 측정 위치는 결과값 저장에 필요한 입력칸이라 숨김 대상에서 제외합니다. */
+    .ca-detail-location-field .memo-input,
+    .card .run-memo-input {
+      display: block;
+    }
+
     .ca-detail-location-input {
       min-height: 44px;
       margin-top: 8px;
@@ -675,6 +694,71 @@
       background: var(--theme-highlight-bg);
     }
 
+    /* ==========================================================================
+       6. 대시보드
+       ========================================================================== */
+    .period-filter {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .period-btn {
+      flex: 1;
+      min-height: 40px;
+      padding: 8px 4px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      color: var(--text3);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .period-btn.active {
+      background: var(--accent2);
+      border-color: transparent;
+      color: var(--text);
+    }
+
+    .dash-sec-label {
+      margin: 16px 0 10px;
+      color: var(--surface);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .dash-divider {
+      height: 1px;
+      margin: 18px 0 14px;
+      background: var(--border);
+    }
+
+    .dash-card.count-left {
+      border-left: 4px solid var(--accent);
+    }
+
+    .dash-card.ng-left {
+      border-left: 4px solid var(--ng);
+    }
+
+    .dash-card.warn-left {
+      border-left: 4px solid var(--warn);
+    }
+
+    .dash-card-title {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .dash-card-sub {
+      margin-top: 2px;
+      color: var(--text3);
+      font-size: 12px;
+    }
+
     .dash-num {
       color: var(--accent);
       font-size: 28px;
@@ -689,7 +773,110 @@
       color: var(--warn);
     }
 
+    .dash-empty {
+      padding: 18px;
+      color: var(--text3);
+      text-align: center;
+      font-size: 13px;
+    }
+
     .compliance-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .compliance-year {
+      color: var(--text3);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .compliance-filter-block {
+      margin-bottom: 10px;
+    }
+
+    .compliance-filter-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .compliance-filter-label {
+      min-width: 32px;
+      color: var(--text3);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .compliance-filter-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .compliance-filter-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .compliance-chip {
+      flex: 0 0 auto;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      color: var(--text3);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .compliance-chip.active {
+      background: rgba(242, 226, 5, 0.28);
+      border-color: transparent;
+      color: var(--text);
+    }
+
+    .compliance-chip.active.compliance-tone-k1,
+    .compliance-group-badge.compliance-tone-k1 {
+      background: var(--compliance-tone-k1);
+    }
+
+    .compliance-chip.active.compliance-tone-k2,
+    .compliance-group-badge.compliance-tone-k2 {
+      background: var(--compliance-tone-k2);
+    }
+
+    .compliance-chip.active.compliance-tone-offsite,
+    .compliance-group-badge.compliance-tone-offsite {
+      background: var(--compliance-tone-offsite);
+    }
+
+    .compliance-chip.active.compliance-tone-hall,
+    .compliance-group-badge.compliance-tone-hall {
+      background: var(--compliance-tone-hall);
+    }
+
+    .compliance-chip.active.compliance-tone-meeting,
+    .compliance-group-badge.compliance-tone-meeting {
+      background: var(--compliance-tone-meeting);
+    }
+
+    .compliance-chip.active.compliance-tone-video,
+    .compliance-group-badge.compliance-tone-video {
+      background: var(--compliance-tone-video);
+    }
+
+    .compliance-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .compliance-card-head {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
@@ -697,45 +884,57 @@
       margin-bottom: 10px;
     }
 
-    .compliance-group {
-      padding: 3px 7px;
-      border-radius: 999px;
-      background: var(--accent2);
+    .compliance-group-badge {
+      flex: 0 0 auto;
+      padding: 5px 9px;
+      border-radius: var(--radius-sm);
+      background: rgba(242, 226, 5, 0.28);
       color: var(--surface);
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 800;
-      white-space: nowrap;
     }
 
-    .month-grid {
+    .compliance-month-grid {
       display: grid;
       grid-template-columns: repeat(6, minmax(0, 1fr));
       gap: 6px;
     }
 
-    .month-cell {
-      min-height: 42px;
-      padding: 6px 4px;
-      border-radius: var(--radius-sm);
+    .compliance-month {
+      min-height: 38px;
+      padding: 4px 2px;
+      border-radius: 6px;
       background: var(--surface2);
       color: var(--text3);
-      text-align: center;
-      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.05;
     }
 
-    .month-cell.checked {
-      background: var(--theme-highlight-bg);
+    .compliance-month.has-record {
+      background:
+        linear-gradient(rgba(46, 204, 112, 0.274), rgba(46, 204, 112, 0.205)),
+        #ffffff;
+      border: 1px solid rgba(46, 140, 78, 0.85);
       color: var(--text);
-      font-weight: 800;
+      cursor: pointer;
     }
 
-    .month-num {
-      font-weight: 800;
+    .compliance-month.has-record:active {
+      transform: scale(0.98);
     }
 
-    .month-date {
-      margin-top: 2px;
+    .compliance-month-num {
       color: var(--text3);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .compliance-month-date {
+      min-height: 14px;
+      margin-top: 2px;
       font-size: 10px;
     }
 
@@ -895,10 +1094,12 @@
            4. 대시보드 화면
            =================================================================== -->
       <section class="section" id="sec-dashboard">
-        <div class="filter-row" style="grid-template-columns:repeat(3,1fr);">
-          <button class="btn-secondary" onclick="setDashboardPeriod('month')">1개월</button>
-          <button class="btn-secondary" onclick="setDashboardPeriod('3month')">3개월</button>
-          <button class="btn-secondary" onclick="setDashboardPeriod('6month')">6개월</button>
+        <!-- 2026-06-02 변경: 기간 필터를 NAS_did 기준 3개에서 4개(이번 달/3개월/6개월/전체)로 변경합니다. -->
+        <div class="period-filter">
+          <button class="period-btn active" onclick="setDashboardPeriod('month', this)">이번 달</button>
+          <button class="period-btn" onclick="setDashboardPeriod('3month', this)">3개월</button>
+          <button class="period-btn" onclick="setDashboardPeriod('6month', this)">6개월</button>
+          <button class="period-btn" onclick="setDashboardPeriod('all', this)">전체</button>
         </div>
         <div id="dashboard-body"><div class="empty">대시보드를 불러오는 중입니다.</div></div>
       </section>
@@ -967,7 +1168,7 @@
     // ========================================================================
     // 1. 전역 상태와 서버 설정
     // ========================================================================
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbx1aETwl0wnZGRIZ0KGKIDtaWdCTVAQ0bW1Sdf3LZbBqWWBqwjEMnTIB8WsWB3fhWmg/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbx1aETwl0wnZGRIZ0KGKIDtaWdCTVAQ0bW1Sdf3LZbBqWWBqwjEMnTIB8WsWB3fhWmg/exec';
 
     let appData = { groups: [], locations: [] };
     let currentLocation = '';
@@ -979,6 +1180,8 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbx1aETwl0wnZGRIZ0KGKIDt
     let memoCache = null;
     let lastInspectionDates = {};
     let dashPeriod = 'month';
+    let complianceGroupFilter = '전체';
+    let complianceStatusFilter = '전체';
 
     document.addEventListener('DOMContentLoaded', initApp);
 
@@ -1167,7 +1370,8 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbx1aETwl0wnZGRIZ0KGKIDt
         <div class="check-item-top">
           <div>
             <div class="check-title">[${escapeHtml(item.equipment || '-')}] ${escapeHtml(checkItemName)}</div>
-            <div class="check-desc">${escapeHtml(methodText)}${item.standard ? ' · ' + escapeHtml(item.standard) : ''}</div>
+            <!-- 2026-06-02 변경: 점검방법 뒤에 기준값을 붙이지 않습니다. 변경 전: 점검방법 + 기준값 표시. -->
+            <div class="check-desc">${escapeHtml(methodText)}</div>
           </div>
           <div class="check-btns">
             ${okBtn}
@@ -1237,7 +1441,9 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbx1aETwl0wnZGRIZ0KGKIDt
     }
 
     function isCaDetailLocationItem(item) {
-      return isCaDetailMeasurementItem(item) && String(getItemCheckName(item)).includes('측정 위치');
+      // 2026-06-02 변경: "측정 위치"만 찾던 조건을 "측정위치"처럼 공백 없는 표기도 인식하게 바꿉니다.
+      const text = [getItemCheckName(item), getItemMethodText(item), item.standard, item.equipment].join(' ');
+      return isCaDetailMeasurementItem(item) && /측정\s*위치/.test(text);
     }
 
     function isCaOnuMeasurementItem(item) {
@@ -1313,9 +1519,10 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbx1aETwl0wnZGRIZ0KGKIDt
     function formatFixedDecimalDigits(value, maxDigits, decimalPlaces) {
       const digits = String(value || '').replace(/\D/g, '').slice(0, maxDigits);
       if (!digits) return '';
-      const padded = digits.padStart(maxDigits, '0');
-      const head = padded.slice(0, maxDigits - decimalPlaces);
-      const tail = padded.slice(maxDigits - decimalPlaces);
+      // 2026-06-02 변경: 입력 중 0을 앞에 채우지 않습니다. 변경 전: 1 입력 시 00.01처럼 즉시 변환.
+      if (digits.length <= decimalPlaces) return digits;
+      const head = digits.slice(0, digits.length - decimalPlaces);
+      const tail = digits.slice(digits.length - decimalPlaces);
       return `${head}.${tail}`;
     }
 
@@ -1491,6 +1698,10 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbx1aETwl0wnZGRIZ0KGKIDt
       const records = currentHistoryView || [];
       const record = records[index];
       if (!record) return;
+      showRecordDetail(record);
+    }
+
+    function showRecordDetail(record) {
       document.getElementById('detail-title').textContent = record.location;
       document.getElementById('detail-meta').textContent = `${record.date} · 점검자: ${record.inspector}`;
       let html = '';
@@ -1532,43 +1743,162 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbx1aETwl0wnZGRIZ0KGKIDt
       }
     }
 
-    function setDashboardPeriod(period) {
+    function setDashboardPeriod(period, button) {
       dashPeriod = period;
+      if (button) {
+        document.querySelectorAll('.period-btn').forEach(item => item.classList.remove('active'));
+        button.classList.add('active');
+      }
       loadDashboard();
     }
 
     function renderDashboard(data) {
       let html = '';
-      html += `<div class="dash-card"><div><div class="dash-title">점검 횟수</div><div class="dash-sub">선택 기간 저장 건수</div></div><div class="dash-num">${data.inspectCount || 0}</div></div>`;
-      html += `<div class="dash-card"><div><div class="dash-title">X 항목 수</div><div class="dash-sub">선택 기간 X 항목</div></div><div class="dash-num ng">${data.ngCount || 0}</div></div>`;
-      html += `<div class="dash-card"><div><div class="dash-title">특이사항 수</div><div class="dash-sub">선택 기간 메모</div></div><div class="dash-num memo">${data.memoCount || 0}</div></div>`;
-      html += '<div class="section-title">점검 이행 현황</div>';
-      const rows = data.complianceRows || [];
-      if (!rows.length) {
-        html += '<div class="empty">점검 이행 현황 데이터가 없습니다.</div>';
-      } else {
-        rows.forEach(row => {
-          html += `<div class="compliance-card">
-            <div class="compliance-head">
-              <div>
-                <div class="compliance-location">${escapeHtml(row.location || '-')}</div>
-                <div class="compliance-latest">${row.latestDate ? '최근 점검일 ' + escapeHtml(row.latestDate) : '점검 기록 없음'}</div>
-              </div>
-              <div class="compliance-group">${escapeHtml(row.group || '기타')}</div>
-            </div>
-            <div class="month-grid">`;
-          for (let month = 1; month <= 12; month += 1) {
-            const dates = (row.months && row.months[String(month)]) || [];
-            const checked = dates.length > 0;
-            html += `<div class="month-cell${checked ? ' checked' : ''}">
-              <div class="month-num">${month}월</div>
-              <div class="month-date">${checked ? escapeHtml(dates[dates.length - 1].slice(5)) : '-'}</div>
-            </div>`;
-          }
-          html += '</div></div>';
-        });
-      }
+      // 2026-06-02 변경: NAS_did 대시보드 기준처럼 요약 라벨과 좌측 색상 라인을 사용합니다.
+      html += '<div class="dash-sec-label">요약</div>';
+      html += renderDashCard('점검 횟수', '선택 기간 저장 건수', data.inspectCount || 0, 'count-left', '');
+      html += renderDashCard('X 항목 수', '선택 기간 X 항목', data.ngCount || 0, 'ng-left', 'ng');
+      html += renderDashCard('특이사항 수', '선택 기간 메모', data.memoCount || 0, 'warn-left', 'memo');
+      html += renderComplianceSection(data);
       document.getElementById('dashboard-body').innerHTML = html;
+    }
+
+    function renderDashCard(title, subText, value, cardClass, numClass) {
+      return `<div class="dash-card ${cardClass}">
+        <div>
+          <div class="dash-card-title">${escapeHtml(title)}</div>
+          <div class="dash-card-sub">${escapeHtml(subText)}</div>
+        </div>
+        <div class="dash-num ${numClass}">${value}</div>
+      </div>`;
+    }
+
+    function renderComplianceSection(data) {
+      const hiddenGroups = new Set(['방송실']);
+      const groups = ['전체', ...(data.complianceGroups || []).filter(group => !hiddenGroups.has(group))];
+      const statuses = ['전체', '이번 달 미점검', '최근 60일 미점검'];
+      const rows = filterComplianceRows(data.complianceRows || []);
+
+      let html = `
+        <div class="dash-divider"></div>
+        <div class="compliance-head">
+          <div class="dash-sec-label" style="margin-bottom:0;">점검 이행 현황</div>
+          <div class="compliance-year">${data.complianceYear || new Date().getFullYear()}년</div>
+        </div>
+        <div class="compliance-filter-block">
+          <div class="compliance-filter-line">
+            <div class="compliance-filter-label">그룹</div>
+            <div class="compliance-filter-row">
+              ${groups.map(group => renderComplianceChip(group, complianceGroupFilter === group, 'setComplianceGroupFilter', getComplianceGroupToneClass(group))).join('')}
+            </div>
+          </div>
+        </div>
+        <div class="compliance-filter-block">
+          <div class="compliance-filter-line">
+            <div class="compliance-filter-label">상태</div>
+            <div class="compliance-filter-row">
+              ${statuses.map(status => renderComplianceChip(status, complianceStatusFilter === status, 'setComplianceStatusFilter', '')).join('')}
+            </div>
+          </div>
+        </div>`;
+
+      if (!rows.length) {
+        return html + '<div class="dash-empty">조건에 맞는 장소가 없습니다.</div>';
+      }
+
+      html += '<div class="compliance-list">';
+      rows.forEach(row => {
+        const months = row.months || {};
+        const latestText = row.latestDate ? `최근 점검일 ${row.latestDate}` : '점검 기록 없음';
+        html += `<div class="compliance-card">
+          <div class="compliance-card-head">
+            <div>
+              <div class="compliance-location">${escapeHtml(row.location || '장소 미지정')}</div>
+              <div class="compliance-latest">${escapeHtml(latestText)}</div>
+            </div>
+            <div class="compliance-group-badge ${getComplianceGroupToneClass(row.group)}">${escapeHtml(row.group || '기타')}</div>
+          </div>
+          <div class="compliance-month-grid">`;
+
+        for (let month = 1; month <= 12; month += 1) {
+          const dates = months[String(month)] || [];
+          const hasRecord = dates.length > 0;
+          const latestDate = getLatestComplianceDate(dates);
+          const clickAction = hasRecord
+            ? ` onclick="openComplianceHistory(decodeURIComponent('${encodeURIComponent(row.location || '')}'), decodeURIComponent('${encodeURIComponent(latestDate)}'))"`
+            : '';
+          html += `<div class="compliance-month${hasRecord ? ' has-record' : ''}" title="${escapeHtml(getComplianceMonthTitle(dates))}"${clickAction}>
+            <div class="compliance-month-num">${month}월</div>
+            <div class="compliance-month-date">${escapeHtml(getComplianceMonthText(dates))}</div>
+          </div>`;
+        }
+
+        html += '</div></div>';
+      });
+      html += '</div>';
+      return html;
+    }
+
+    function renderComplianceChip(label, active, handlerName, toneClass) {
+      const encodedLabel = encodeURIComponent(label);
+      return `<button class="compliance-chip ${active ? 'active' : ''} ${toneClass || ''}" type="button"
+        onclick="${handlerName}(decodeURIComponent('${encodedLabel}'))">${escapeHtml(label)}</button>`;
+    }
+
+    function setComplianceGroupFilter(groupName) {
+      complianceGroupFilter = groupName || '전체';
+      loadDashboard();
+    }
+
+    function setComplianceStatusFilter(statusName) {
+      complianceStatusFilter = statusName || '전체';
+      loadDashboard();
+    }
+
+    function filterComplianceRows(rows) {
+      return (rows || []).filter(row => {
+        const matchGroup = complianceGroupFilter === '전체' || row.group === complianceGroupFilter;
+        const matchStatus = complianceStatusFilter === '전체'
+          || (complianceStatusFilter === '이번 달 미점검' && !row.currentMonthChecked)
+          || (complianceStatusFilter === '최근 60일 미점검' && row.stale60Days);
+        return matchGroup && matchStatus;
+      });
+    }
+
+    function getComplianceGroupToneClass(groupName) {
+      if (groupName === 'K1') return 'compliance-tone-k1';
+      if (groupName === 'K2') return 'compliance-tone-k2';
+      if (groupName === '사외') return 'compliance-tone-offsite';
+      if (groupName === '강당') return 'compliance-tone-hall';
+      if (groupName === '일반 회의실/교육장') return 'compliance-tone-meeting';
+      if (groupName === '화상회의 연동 회의실') return 'compliance-tone-video';
+      return '';
+    }
+
+    function getLatestComplianceDate(dates) {
+      return (dates || []).slice().sort().pop() || '';
+    }
+
+    function getComplianceMonthText(dates) {
+      if (!dates || !dates.length) return '-';
+      const latest = getLatestComplianceDate(dates);
+      const day = Number(String(latest).slice(8, 10));
+      return dates.length > 1 ? `${day}일 외${dates.length - 1}` : `${day}일`;
+    }
+
+    function getComplianceMonthTitle(dates) {
+      if (!dates || !dates.length) return '점검 기록 없음';
+      return dates.join(', ');
+    }
+
+    async function openComplianceHistory(locationName, dateText) {
+      try {
+        const records = await loadAllHistoryRecords(3650);
+        const record = (records || []).find(item => item.location === locationName && item.date === dateText);
+        if (record) showRecordDetail(record);
+      } catch (err) {
+        alert(err.message || '히스토리를 불러오지 못했습니다.');
+      }
     }
 
     async function loadMemoRecords() {
