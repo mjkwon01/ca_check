@@ -26,6 +26,12 @@
       --text: #000000;
       --text2: #FFFFFF;
       --text3: #5a5f7a;
+      /* 2026-06-02 변경: NAS_did CA 테마와 같은 색상 코드를 사용합니다. */
+      --theme-equipment-bg: rgba(255, 249, 48, 0.08);
+      --theme-highlight-bg: rgba(255, 249, 48, 0.18);
+      --theme-measure-bg: rgba(255, 249, 48, 0.10);
+      --theme-measure-text: #F2E205;
+      --theme-accent-background: rgba(205, 99, 110, 0.06);
       --radius: 12px;
       --radius-sm: 8px;
     }
@@ -66,47 +72,48 @@
       position: sticky;
       top: 0;
       z-index: 20;
-      padding: 14px 16px 10px;
-      background: var(--surface);
-      color: var(--text2);
+      padding: 12px 16px 10px;
+      background: var(--surface3);
+      color: var(--accent);
       border-bottom: 1px solid var(--border);
     }
 
     .header-title {
-      font-size: 18px;
-      font-weight: 800;
+      font-size: 16px;
+      font-weight: 700;
       letter-spacing: 0;
     }
 
     .header-sub {
       margin-top: 2px;
-      color: rgba(255, 255, 255, 0.72);
+      color: var(--text3);
       font-size: 12px;
     }
 
     .tabs {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 6px;
-      padding: 10px 16px;
+      gap: 0;
+      padding: 0 16px;
       background: var(--surface);
+      border-bottom: 1px solid var(--border);
     }
 
     .tab-btn {
-      height: 36px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: var(--radius-sm);
-      background: transparent;
-      color: rgba(255, 255, 255, 0.75);
-      font-size: 12px;
-      font-weight: 700;
+      min-height: 44px;
+      border: 0;
+      border-bottom: 4px solid transparent;
+      border-radius: 0;
+      background: none;
+      color: var(--text3);
+      font-size: 14px;
+      font-weight: 500;
       cursor: pointer;
     }
 
     .tab-btn.active {
-      background: var(--accent);
-      border-color: var(--accent);
       color: var(--accent-text);
+      border-bottom-color: var(--accent);
     }
 
     .main {
@@ -123,10 +130,10 @@
 
     .card {
       margin-bottom: 12px;
-      padding: 14px;
+      padding: 16px;
       border-radius: var(--radius);
-      background: var(--surface3);
-      border: 0 solid var(--border);
+      background: var(--surface);
+      border: 1px solid var(--border);
     }
 
     .section-title {
@@ -152,9 +159,9 @@
 
     .input-label {
       flex: 0 0 auto;
-      color: var(--text);
+      color: var(--text2);
       font-size: 13px;
-      font-weight: 800;
+      font-weight: 700;
     }
 
     .input-field {
@@ -190,15 +197,16 @@
 
     .location-btn {
       min-height: 44px;
-      padding: 11px 10px;
+      padding: 12px 10px;
       border: 0 solid var(--border);
       border-radius: var(--radius-sm);
       background: var(--surface3);
       color: var(--text);
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 500;
       text-align: left;
       cursor: pointer;
+      line-height: 1.3;
     }
 
     .location-btn.selected {
@@ -211,18 +219,18 @@
       bottom: 0;
       z-index: 10;
       margin: 0 -16px;
-      padding: 12px 16px 16px;
-      background: linear-gradient(to top, var(--bg) 72%, rgba(243, 243, 243, 0));
+      padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+      background: var(--surface2);
     }
 
     .btn-primary,
     .btn-secondary {
       width: 100%;
       min-height: 44px;
-      border-radius: var(--radius-sm);
+      border-radius: var(--radius);
       border: 1px solid var(--surface);
-      font-size: 14px;
-      font-weight: 800;
+      font-size: 15px;
+      font-weight: 700;
       cursor: pointer;
     }
 
@@ -232,7 +240,7 @@
     }
 
     .btn-primary:disabled {
-      opacity: 0.35;
+      filter: brightness(0.55);
       cursor: not-allowed;
     }
 
@@ -245,11 +253,12 @@
        4. 점검 입력
        ========================================================================== */
     .inspect-header {
-      margin-bottom: 12px;
-      padding: 14px;
+      margin-bottom: 16px;
+      padding: 16px;
       border-radius: var(--radius);
-      background: var(--surface);
-      color: var(--text2);
+      background: var(--surface3);
+      color: var(--text);
+      border: 0.5px solid var(--border);
     }
 
     .inspect-location-row {
@@ -261,8 +270,8 @@
 
     .inspect-location {
       min-width: 0;
-      font-size: 17px;
-      font-weight: 800;
+      font-size: 16px;
+      font-weight: 700;
     }
 
     .count-badge {
@@ -280,7 +289,7 @@
       flex-wrap: wrap;
       gap: 10px;
       margin-top: 8px;
-      color: var(--text2);
+      color: var(--text3);
       font-size: 12px;
     }
 
@@ -289,19 +298,21 @@
     }
 
     .equipment-name {
-      padding: 12px 14px;
-      border-radius: var(--radius-sm);
-      background: var(--surface);
-      color: var(--text2);
-      font-size: 14px;
-      font-weight: 800;
+      padding: 8px 12px;
+      border-radius: 4px;
+      background: var(--theme-equipment-bg);
+      color: var(--accent2);
+      border-left: 3px solid var(--accent2);
+      font-size: 13px;
+      font-weight: 700;
       cursor: pointer;
+      letter-spacing: 0.5px;
     }
 
     .equipment-name::after {
       content: "접기";
       float: right;
-      color: rgba(255, 255, 255, 0.72);
+      color: var(--text3);
       font-size: 11px;
       font-weight: 700;
     }
@@ -323,7 +334,7 @@
     .ca-detail-card,
     .ca-detail-location-field {
       margin-bottom: 8px;
-      padding: 12px;
+      padding: 10px 14px;
       border-radius: var(--radius-sm);
       background: var(--surface3);
       color: var(--text);
@@ -341,7 +352,7 @@
     .check-title,
     .ca-detail-title {
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 500;
       color: var(--text);
     }
 
@@ -369,7 +380,7 @@
       background: var(--surface2);
       color: var(--text3);
       font-size: 14px;
-      font-weight: 800;
+      font-weight: 600;
       cursor: pointer;
     }
 
@@ -403,7 +414,7 @@
       align-items: center;
       min-height: 40px;
       border-radius: var(--radius-sm);
-      background: var(--surface2);
+      background: var(--theme-measure-bg);
       overflow: hidden;
     }
 
@@ -486,7 +497,7 @@
     .compliance-card {
       margin-bottom: 10px;
       padding: 14px;
-      border-radius: var(--radius-sm);
+      border-radius: var(--radius);
       background: var(--surface3);
     }
 
@@ -562,7 +573,7 @@
     }
 
     .month-cell.checked {
-      background: rgba(205, 99, 110, 0.18);
+      background: var(--theme-highlight-bg);
       color: var(--text);
       font-weight: 800;
     }
@@ -605,6 +616,7 @@
       padding: 20px 16px 32px;
       border-radius: var(--radius) var(--radius) 0 0;
       background: var(--surface2);
+      border: 1px solid var(--border);
       overflow-y: auto;
     }
 
@@ -616,6 +628,19 @@
       background: var(--surface);
       color: var(--text2);
       text-align: center;
+    }
+
+    .save-done-title {
+      margin-bottom: 8px;
+      color: var(--text2);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .save-done-message {
+      margin-bottom: 20px;
+      color: var(--text2);
+      font-size: 13px;
     }
 
     .modal-title {
@@ -751,8 +776,8 @@
   <!-- 저장 완료 팝업 -->
   <div class="modal-overlay" id="save-done-modal">
     <div class="modal save-done-panel">
-      <div style="font-size:16px;font-weight:800;margin-bottom:8px;">저장 완료</div>
-      <div style="font-size:13px;color:var(--text2);margin-bottom:20px;">스프레드시트에 점검 기록을 저장했습니다.</div>
+      <div class="save-done-title">저장 완료</div>
+      <div class="save-done-message">스프레드시트에 점검 기록을 저장했습니다.</div>
       <button class="btn-primary" onclick="afterSaveDone()">확인</button>
     </div>
   </div>
