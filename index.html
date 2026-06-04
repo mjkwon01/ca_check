@@ -99,8 +99,8 @@
 
     .tabs {
       display: grid;
-      /* 2026-06-04 변경: 옥외 시설물 탭 추가로 탭 수가 5개 -> 6개로 늘었습니다. */
-      grid-template-columns: repeat(6, 1fr);
+      /* 2026-06-04 변경: 옥외 시설물은 별도 탭이 아니라 점검 장소 목록 하단 진입으로 바꿔 탭 수를 6개 -> 5개로 되돌립니다. */
+      grid-template-columns: repeat(5, 1fr);
       gap: 0;
       padding: 0 16px;
       background: var(--surface);
@@ -120,9 +120,10 @@
     }
 
     /* ==========================================================================
-       5. 옥외 시설물 원본형 표
+       5. 옥외 시설물 점검
        ========================================================================== */
-    .outdoor-toolbar {
+    .outdoor-panel,
+    .outdoor-check-card {
       margin-bottom: 12px;
       padding: 14px;
       border-radius: var(--radius);
@@ -130,70 +131,191 @@
       border: 1px solid var(--border);
     }
 
-    .outdoor-table-scroll {
-      width: 100%;
-      overflow-x: auto;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--surface3);
+    .outdoor-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
     }
 
-    .outdoor-table {
-      min-width: 1120px;
-      width: max-content;
-      border-collapse: collapse;
+    .outdoor-title {
+      color: var(--surface);
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .outdoor-sub {
+      margin-top: 2px;
+      color: var(--text3);
       font-size: 12px;
     }
 
-    .outdoor-table th,
-    .outdoor-table td {
-      min-width: 74px;
-      padding: 7px 6px;
-      border: 1px solid var(--border);
-      vertical-align: middle;
-      background: var(--surface3);
-      text-align: center;
+    .outdoor-group-filter {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      margin-bottom: 10px;
+      padding-bottom: 2px;
     }
 
-    .outdoor-table th {
-      background: var(--surface);
-      color: var(--text2);
+    .outdoor-group-filter::-webkit-scrollbar {
+      display: none;
+    }
+
+    .outdoor-group-btn {
+      flex: 0 0 auto;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      color: var(--text3);
+      font-size: 12px;
       font-weight: 800;
+      cursor: pointer;
+    }
+
+    .outdoor-group-btn.active {
+      background: var(--accent2);
+      color: var(--surface);
+    }
+
+    .outdoor-location-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .outdoor-location-card {
+      width: 100%;
+      min-height: 42px;
+      padding: 7px 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .outdoor-location-card.active {
+      border-color: var(--accent);
+      background: var(--theme-accent-background);
+    }
+
+    .outdoor-location-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .outdoor-location-name {
+      overflow: hidden;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.2;
+      text-overflow: ellipsis;
       white-space: nowrap;
     }
 
-    .outdoor-meta-col {
-      min-width: 92px !important;
-      text-align: left !important;
+    .outdoor-location-bottom {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
     }
 
-    .outdoor-method-col {
-      min-width: 220px !important;
-      text-align: left !important;
+    .outdoor-complete-tag {
+      border-radius: 999px;
+      padding: 2px 6px;
+      background: rgba(46, 204, 113, 0.12);
+      color: #1f8d48;
+      font-size: 9px;
+      font-weight: 900;
+    }
+
+    .outdoor-complete-tag.empty {
+      background: rgba(90, 95, 122, 0.10);
+      color: var(--text3);
+    }
+
+    .outdoor-defect-rate {
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .outdoor-defect-rate.ng {
+      color: var(--ng);
+    }
+
+    .outdoor-defect-rate.empty {
+      color: var(--text3);
+    }
+
+    .outdoor-check-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .outdoor-check-location {
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .outdoor-check-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .outdoor-check-item {
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+    }
+
+    .outdoor-check-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .outdoor-check-name {
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
       line-height: 1.35;
     }
 
-    .outdoor-sticky-left {
-      position: sticky;
-      left: 0;
-      z-index: 2;
-      box-shadow: 1px 0 0 var(--border);
+    .outdoor-check-desc {
+      margin-top: 3px;
+      color: var(--text3);
+      font-size: 11px;
+      line-height: 1.35;
     }
 
-    .outdoor-result-cell {
+    .outdoor-result-buttons {
       display: flex;
-      justify-content: center;
+      flex: 0 0 auto;
       gap: 4px;
     }
 
     .outdoor-result-btn {
-      width: 30px;
-      height: 30px;
+      width: 34px;
+      height: 34px;
       border: 1px solid var(--border);
-      border-radius: 6px;
-      background: var(--surface2);
+      border-radius: var(--radius-sm);
+      background: var(--surface3);
       color: var(--text3);
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 800;
       cursor: pointer;
     }
@@ -1318,8 +1440,6 @@
     <nav class="tabs">
       <button class="tab-btn active" data-tab="inspect" onclick="showTab('inspect')">점검</button>
       <!-- 2026-06-02 변경: 탭 순서를 점검, 히스토리, 검색, 대시보드, 설정으로 복구합니다. -->
-      <!-- 2026-06-04 변경: 옥외 시설물 원본형 구조 테스트를 위해 탭 수를 5개 -> 6개로 늘립니다. -->
-      <button class="tab-btn" data-tab="outdoor" onclick="showTab('outdoor')">옥외</button>
       <button class="tab-btn" data-tab="history" onclick="showTab('history')">히스토리</button>
       <button class="tab-btn" data-tab="memo" onclick="showTab('memo')">검색</button>
       <button class="tab-btn" data-tab="dashboard" onclick="showTab('dashboard')">대시보드</button>
@@ -1369,26 +1489,25 @@
           <button class="btn-primary" id="btn-save" onclick="saveResult()">데이터 저장</button>
           <button class="btn-secondary" style="margin-top:8px;" onclick="backToLocationSelect()">장소 선택으로 돌아가기</button>
         </div>
-      </section>
 
-      <!-- ===================================================================
-           3. 옥외 시설물 점검 화면
-           =================================================================== -->
-      <section class="section" id="sec-outdoor">
-        <div class="outdoor-toolbar">
-          <div class="input-row">
-            <div class="input-label" style="color:var(--surface);">점검자</div>
-            <input class="input-field" id="outdoor-inspector-name" placeholder="이름을 입력하세요" oninput="saveOutdoorInspectorName()">
+        <div id="step-outdoor" style="display:none;">
+          <div class="outdoor-panel">
+            <div class="outdoor-top">
+              <div>
+                <div class="outdoor-title">옥외 시설물 점검</div>
+                <div class="outdoor-sub">K1/K2 지역별 장소 상태를 확인하고 저장합니다.</div>
+              </div>
+            </div>
+            <div id="outdoor-body"><div class="empty">옥외 시설물 점검 데이터를 불러오는 중입니다.</div></div>
           </div>
-          <div class="muted" style="margin-top:8px;">원본 옥외 시설물 점검 시트처럼 항목은 세로, 장소는 가로로 표시합니다.</div>
+          <div class="save-status" id="outdoor-save-status"></div>
+          <button class="btn-primary" id="btn-outdoor-save" onclick="saveOutdoorResults()">옥외 시설물 저장</button>
+          <button class="btn-secondary" style="margin-top:8px;" onclick="backToLocationSelect()">장소 선택으로 돌아가기</button>
         </div>
-        <div id="outdoor-body"><div class="empty">옥외 시설물 점검 데이터를 불러오는 중입니다.</div></div>
-        <div class="save-status" id="outdoor-save-status"></div>
-        <button class="btn-primary" id="btn-outdoor-save" onclick="saveOutdoorResults()">옥외 시설물 저장</button>
       </section>
 
       <!-- ===================================================================
-           4. 히스토리 화면
+           3. 히스토리 화면
            =================================================================== -->
       <section class="section" id="sec-history">
         <div class="history-filter">
@@ -1511,6 +1630,18 @@
     let complianceStatusFilter = '전체';
     let outdoorData = null;
     let outdoorResults = {};
+    let outdoorSelectedLocation = '';
+    let outdoorGroupFilter = 'K1';
+    // 2026-06-04 변경: 옥외 시설물은 별도 탭이 아니라 장소 선택 목록 맨 아래의 내부 진입값으로 처리합니다.
+    // 변경 전: 옥외 탭 1개를 새로 만들었습니다. 변경 후: 점검 장소 목록 아래 버튼으로 진입합니다.
+    const OUTDOOR_ENTRY_LOCATION = '__OUTDOOR_INSPECTION__';
+    const OUTDOOR_LOCATION_GROUP_OVERRIDES = {
+      'SR3동': 'K2',
+      '정문동': 'K1',
+      'SR1동 식당': 'K1',
+      'SR3동 식당': 'K2',
+      '6-1라인 스피커': 'K2',
+    };
 
     document.addEventListener('DOMContentLoaded', initApp);
 
@@ -1579,6 +1710,12 @@
         });
         html += '</div></div>';
       });
+      html += `<div class="location-group">
+        <div class="location-group-title">옥외 시설물 점검</div>
+        <div class="location-grid">
+          <button class="location-btn" data-location="${OUTDOOR_ENTRY_LOCATION}" onclick="selectLocation('${encodeURIComponent(OUTDOOR_ENTRY_LOCATION)}')">옥외 시설물 점검</button>
+        </div>
+      </div>`;
       listEl.innerHTML = html;
     }
 
@@ -1598,16 +1735,10 @@
     function loadInspectorName() {
       const value = localStorage.getItem('ca_check_inspector') || '';
       document.getElementById('inspector-name').value = value;
-      const outdoorInput = document.getElementById('outdoor-inspector-name');
-      if (outdoorInput) outdoorInput.value = value;
     }
 
     function saveInspectorName() {
       localStorage.setItem('ca_check_inspector', document.getElementById('inspector-name').value.trim());
-    }
-
-    function saveOutdoorInspectorName() {
-      localStorage.setItem('ca_check_inspector', document.getElementById('outdoor-inspector-name').value.trim());
     }
 
     async function startInspection() {
@@ -1617,6 +1748,15 @@
 
       saveInspectorName();
       document.getElementById('btn-start').disabled = true;
+
+      if (currentLocation === OUTDOOR_ENTRY_LOCATION) {
+        document.getElementById('step-select').style.display = 'none';
+        document.getElementById('step-inspect').style.display = 'none';
+        document.getElementById('step-outdoor').style.display = 'block';
+        await loadOutdoorData();
+        updateStartButton();
+        return;
+      }
 
       try {
         const data = await requestJson({ action: 'checklist', location: currentLocation, t: Date.now() });
@@ -1644,8 +1784,11 @@
 
     function backToLocationSelect() {
       document.getElementById('step-inspect').style.display = 'none';
+      document.getElementById('step-outdoor').style.display = 'none';
       document.getElementById('step-select').style.display = 'block';
       document.getElementById('save-status').textContent = '';
+      const outdoorStatus = document.getElementById('outdoor-save-status');
+      if (outdoorStatus) outdoorStatus.textContent = '';
     }
 
     // ========================================================================
@@ -1944,7 +2087,9 @@
       try {
         outdoorData = await requestJson({ action: 'outdoor', t: Date.now() });
         outdoorResults = JSON.parse(JSON.stringify(outdoorData.results || {}));
-        renderOutdoorTable();
+        const visibleLocations = getVisibleOutdoorLocations();
+        outdoorSelectedLocation = visibleLocations[0]?.name || outdoorData.locations?.[0]?.name || '';
+        renderOutdoor();
       } catch (err) {
         body.innerHTML = `<div class="empty">옥외 시설물 데이터를 불러오지 못했습니다.<br>${escapeHtml(err.message)}</div>`;
       }
@@ -1959,10 +2104,66 @@
       const rowKey = String(sourceRow);
       if (!outdoorResults[rowKey]) outdoorResults[rowKey] = {};
       outdoorResults[rowKey][locationName] = getOutdoorResult(sourceRow, locationName) === result ? '' : result;
-      renderOutdoorTable();
+      renderOutdoor();
     }
 
-    function renderOutdoorTable() {
+    function getOutdoorItemResult(locationName, sourceRow) {
+      return getOutdoorResult(sourceRow, locationName);
+    }
+
+    function getOutdoorSummary(locationName) {
+      const values = (outdoorData?.items || []).map(item => getOutdoorItemResult(locationName, item.sourceRow));
+      const okCount = values.filter(value => value === 'ok').length;
+      const ngCount = values.filter(value => value === 'ng').length;
+      const checkedCount = okCount + ngCount;
+      // 2026-06-04 변경: 옥외 장소 카드는 정상률이 아니라 불량률을 보여줍니다. 계산 기준은 X / (○ + X)입니다.
+      const defectRate = checkedCount ? Math.round((ngCount / checkedCount) * 1000) / 10 : null;
+      return { okCount, ngCount, checkedCount, defectRate };
+    }
+
+    function getOutdoorLocationGroup(locationName) {
+      if (OUTDOOR_LOCATION_GROUP_OVERRIDES[locationName]) return OUTDOOR_LOCATION_GROUP_OVERRIDES[locationName];
+      const matched = (appData.groups || []).find(item => item.location === locationName);
+      if (matched && (matched.group === 'K1' || matched.group === 'K2')) return matched.group;
+      if (String(locationName || '').includes('SR3') || String(locationName || '').includes('6-1')) return 'K2';
+      return 'K1';
+    }
+
+    function getVisibleOutdoorLocations() {
+      const locations = outdoorData?.locations || [];
+      return locations.filter(location => getOutdoorLocationGroup(location.name) === outdoorGroupFilter);
+    }
+
+    function setOutdoorGroupFilter(groupName) {
+      outdoorGroupFilter = groupName;
+      outdoorSelectedLocation = '';
+      renderOutdoor();
+    }
+
+    function setOutdoorLocation(locationName) {
+      outdoorSelectedLocation = locationName;
+      renderOutdoor();
+    }
+
+    function renderOutdoorGroupFilter() {
+      const groups = ['K1', 'K2'];
+      return `<div class="outdoor-group-filter">` + groups.map(group => {
+        const count = (outdoorData?.locations || []).filter(location => getOutdoorLocationGroup(location.name) === group).length;
+        return `<button class="outdoor-group-btn${outdoorGroupFilter === group ? ' active' : ''}" type="button" onclick="setOutdoorGroupFilter('${group}')">${group} <span style="font-size:11px;color:var(--text3);">${count}</span></button>`;
+      }).join('') + `</div>`;
+    }
+
+    function renderOutdoorCompleteTag(summary) {
+      const completed = summary.checkedCount > 0;
+      return `<span class="outdoor-complete-tag${completed ? '' : ' empty'}">${completed ? '점검완료' : '미점검'}</span>`;
+    }
+
+    function renderOutdoorDefectRate(summary) {
+      if (summary.defectRate === null || summary.defectRate === undefined) return `<span class="outdoor-defect-rate empty">불량 -</span>`;
+      return `<span class="outdoor-defect-rate${summary.ngCount > 0 ? ' ng' : ''}">불량 ${summary.defectRate}%</span>`;
+    }
+
+    function renderOutdoor() {
       const body = document.getElementById('outdoor-body');
       if (!body || !outdoorData) return;
 
@@ -1972,54 +2173,64 @@
         body.innerHTML = '<div class="empty">옥외 시설물 원본 표 데이터가 없습니다.</div>';
         return;
       }
+      const visibleLocations = getVisibleOutdoorLocations();
+      if (!visibleLocations.length) {
+        body.innerHTML = renderOutdoorGroupFilter() + '<div class="empty">선택한 지역의 옥외 장소가 없습니다.</div>';
+        return;
+      }
+      if (!outdoorSelectedLocation || !visibleLocations.some(location => location.name === outdoorSelectedLocation)) {
+        outdoorSelectedLocation = visibleLocations[0].name;
+      }
 
-      let html = `<div class="card">
-        <div class="section-title" style="margin-top:0;">${escapeHtml(outdoorData.title || '옥외 시설물 점검')}</div>
-        <div class="muted">좌우로 밀어서 원본 장소 열을 확인합니다.</div>
-      </div>
-      <div class="outdoor-table-scroll">
-        <table class="outdoor-table">
-          <thead>
-            <tr>
-              <th class="outdoor-meta-col outdoor-sticky-left">구분</th>
-              <th class="outdoor-meta-col">장비명</th>
-              <th class="outdoor-meta-col">점검 항목</th>
-              <th class="outdoor-method-col">점검 방법</th>`;
-
-      locations.forEach(location => {
-        html += `<th>${escapeHtml(location.name)}</th>`;
+      let html = renderOutdoorGroupFilter() + '<div class="outdoor-location-list">';
+      visibleLocations.forEach(location => {
+        const summary = getOutdoorSummary(location.name);
+        const active = outdoorSelectedLocation === location.name;
+        html += `<button class="outdoor-location-card${active ? ' active' : ''}" type="button" onclick="setOutdoorLocation(decodeURIComponent('${encodeURIComponent(location.name)}'))">
+          <div class="outdoor-location-head">
+            <div class="outdoor-location-name">${escapeHtml(location.name)}</div>
+            <div class="outdoor-location-bottom">
+              ${renderOutdoorCompleteTag(summary)}
+              ${renderOutdoorDefectRate(summary)}
+            </div>
+          </div>
+        </button>`;
       });
+      html += '</div>';
 
-      html += `</tr></thead><tbody>`;
+      const selectedSummary = getOutdoorSummary(outdoorSelectedLocation);
+      html += `<div class="outdoor-check-card">
+        <div class="outdoor-check-title">
+          <div>
+            <div class="outdoor-check-location">${escapeHtml(outdoorSelectedLocation)}</div>
+            <div class="outdoor-sub">○ ${selectedSummary.okCount} · X ${selectedSummary.ngCount}</div>
+          </div>
+          ${renderOutdoorDefectRate(selectedSummary)}
+        </div>
+        <div class="outdoor-check-grid">`;
 
       items.forEach(item => {
-        html += `<tr>
-          <td class="outdoor-meta-col outdoor-sticky-left">${escapeHtml(item.category || '')}</td>
-          <td class="outdoor-meta-col">${escapeHtml(item.equipment || '')}</td>
-          <td class="outdoor-meta-col">${escapeHtml(item.checkItem || '')}</td>
-          <td class="outdoor-method-col">${escapeHtml(item.checkMethod || '')}</td>`;
-
-        locations.forEach(location => {
-          const current = getOutdoorResult(item.sourceRow, location.name);
-          html += `<td>
-            <div class="outdoor-result-cell">
-              <button class="outdoor-result-btn ok ${current === 'ok' ? 'active' : ''}" type="button"
-                onclick="setOutdoorResult(${Number(item.sourceRow || 0)}, decodeURIComponent('${encodeURIComponent(location.name)}'), 'ok')">○</button>
-              <button class="outdoor-result-btn ng ${current === 'ng' ? 'active' : ''}" type="button"
-                onclick="setOutdoorResult(${Number(item.sourceRow || 0)}, decodeURIComponent('${encodeURIComponent(location.name)}'), 'ng')">X</button>
+        const current = getOutdoorItemResult(outdoorSelectedLocation, item.sourceRow);
+        html += `<div class="outdoor-check-item">
+          <div class="outdoor-check-row">
+            <div>
+              <div class="outdoor-check-name">[${escapeHtml(item.category || '-')}] ${escapeHtml(item.equipment || '-')} · ${escapeHtml(item.checkItem || '-')}</div>
+              <div class="outdoor-check-desc">${escapeHtml(item.checkMethod || '')}</div>
             </div>
-          </td>`;
-        });
-
-        html += '</tr>';
+            <div class="outdoor-result-buttons">
+              <button class="outdoor-result-btn ok ${current === 'ok' ? 'active' : ''}" type="button" onclick="setOutdoorResult(${Number(item.sourceRow || 0)}, decodeURIComponent('${encodeURIComponent(outdoorSelectedLocation)}'), 'ok')">○</button>
+              <button class="outdoor-result-btn ng ${current === 'ng' ? 'active' : ''}" type="button" onclick="setOutdoorResult(${Number(item.sourceRow || 0)}, decodeURIComponent('${encodeURIComponent(outdoorSelectedLocation)}'), 'ng')">X</button>
+            </div>
+          </div>
+        </div>`;
       });
 
-      html += '</tbody></table></div>';
+      html += '</div></div>';
       body.innerHTML = html;
     }
 
     async function saveOutdoorResults() {
-      const inspector = document.getElementById('outdoor-inspector-name').value.trim();
+      const inspector = document.getElementById('inspector-name').value.trim();
       const statusEl = document.getElementById('outdoor-save-status');
       const button = document.getElementById('btn-outdoor-save');
 
@@ -2027,7 +2238,7 @@
       if (!outdoorData) await loadOutdoorData();
       if (!outdoorData) return;
 
-      saveOutdoorInspectorName();
+      saveInspectorName();
 
       const payloadItems = [];
       (outdoorData.items || []).forEach(item => {
@@ -2551,7 +2762,6 @@
       document.querySelectorAll('.tab-btn').forEach(button => button.classList.toggle('active', button.dataset.tab === tab));
       document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
       document.getElementById(`sec-${tab}`).classList.add('active');
-      if (tab === 'outdoor' && !outdoorData) loadOutdoorData();
       if (tab === 'history') renderHistory();
       if (tab === 'dashboard') loadDashboard();
       if (tab === 'memo') renderMemoRecords();
