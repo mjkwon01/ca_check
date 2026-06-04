@@ -99,7 +99,8 @@
 
     .tabs {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      /* 2026-06-04 변경: 옥외 시설물 탭 추가로 탭 수가 5개 -> 6개로 늘었습니다. */
+      grid-template-columns: repeat(6, 1fr);
       gap: 0;
       padding: 0 16px;
       background: var(--surface);
@@ -116,6 +117,97 @@
       font-size: 14px;
       font-weight: 500;
       cursor: pointer;
+    }
+
+    /* ==========================================================================
+       5. 옥외 시설물 원본형 표
+       ========================================================================== */
+    .outdoor-toolbar {
+      margin-bottom: 12px;
+      padding: 14px;
+      border-radius: var(--radius);
+      background: var(--surface3);
+      border: 1px solid var(--border);
+    }
+
+    .outdoor-table-scroll {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface3);
+    }
+
+    .outdoor-table {
+      min-width: 1120px;
+      width: max-content;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .outdoor-table th,
+    .outdoor-table td {
+      min-width: 74px;
+      padding: 7px 6px;
+      border: 1px solid var(--border);
+      vertical-align: middle;
+      background: var(--surface3);
+      text-align: center;
+    }
+
+    .outdoor-table th {
+      background: var(--surface);
+      color: var(--text2);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .outdoor-meta-col {
+      min-width: 92px !important;
+      text-align: left !important;
+    }
+
+    .outdoor-method-col {
+      min-width: 220px !important;
+      text-align: left !important;
+      line-height: 1.35;
+    }
+
+    .outdoor-sticky-left {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      box-shadow: 1px 0 0 var(--border);
+    }
+
+    .outdoor-result-cell {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .outdoor-result-btn {
+      width: 30px;
+      height: 30px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface2);
+      color: var(--text3);
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .outdoor-result-btn.ok.active {
+      border-color: var(--ok);
+      background: rgba(46, 204, 113, 0.16);
+      color: var(--ok);
+    }
+
+    .outdoor-result-btn.ng.active {
+      border-color: var(--ng);
+      background: rgba(231, 76, 60, 0.16);
+      color: var(--ng);
     }
 
     .tab-btn.active {
@@ -1226,6 +1318,8 @@
     <nav class="tabs">
       <button class="tab-btn active" data-tab="inspect" onclick="showTab('inspect')">점검</button>
       <!-- 2026-06-02 변경: 탭 순서를 점검, 히스토리, 검색, 대시보드, 설정으로 복구합니다. -->
+      <!-- 2026-06-04 변경: 옥외 시설물 원본형 구조 테스트를 위해 탭 수를 5개 -> 6개로 늘립니다. -->
+      <button class="tab-btn" data-tab="outdoor" onclick="showTab('outdoor')">옥외</button>
       <button class="tab-btn" data-tab="history" onclick="showTab('history')">히스토리</button>
       <button class="tab-btn" data-tab="memo" onclick="showTab('memo')">검색</button>
       <button class="tab-btn" data-tab="dashboard" onclick="showTab('dashboard')">대시보드</button>
@@ -1278,7 +1372,23 @@
       </section>
 
       <!-- ===================================================================
-           3. 히스토리 화면
+           3. 옥외 시설물 점검 화면
+           =================================================================== -->
+      <section class="section" id="sec-outdoor">
+        <div class="outdoor-toolbar">
+          <div class="input-row">
+            <div class="input-label" style="color:var(--surface);">점검자</div>
+            <input class="input-field" id="outdoor-inspector-name" placeholder="이름을 입력하세요" oninput="saveOutdoorInspectorName()">
+          </div>
+          <div class="muted" style="margin-top:8px;">원본 옥외 시설물 점검 시트처럼 항목은 세로, 장소는 가로로 표시합니다.</div>
+        </div>
+        <div id="outdoor-body"><div class="empty">옥외 시설물 점검 데이터를 불러오는 중입니다.</div></div>
+        <div class="save-status" id="outdoor-save-status"></div>
+        <button class="btn-primary" id="btn-outdoor-save" onclick="saveOutdoorResults()">옥외 시설물 저장</button>
+      </section>
+
+      <!-- ===================================================================
+           4. 히스토리 화면
            =================================================================== -->
       <section class="section" id="sec-history">
         <div class="history-filter">
@@ -1399,6 +1509,8 @@
     let memoOpen = false;
     let complianceGroupFilter = '전체';
     let complianceStatusFilter = '전체';
+    let outdoorData = null;
+    let outdoorResults = {};
 
     document.addEventListener('DOMContentLoaded', initApp);
 
@@ -1486,10 +1598,16 @@
     function loadInspectorName() {
       const value = localStorage.getItem('ca_check_inspector') || '';
       document.getElementById('inspector-name').value = value;
+      const outdoorInput = document.getElementById('outdoor-inspector-name');
+      if (outdoorInput) outdoorInput.value = value;
     }
 
     function saveInspectorName() {
       localStorage.setItem('ca_check_inspector', document.getElementById('inspector-name').value.trim());
+    }
+
+    function saveOutdoorInspectorName() {
+      localStorage.setItem('ca_check_inspector', document.getElementById('outdoor-inspector-name').value.trim());
     }
 
     async function startInspection() {
@@ -1573,6 +1691,9 @@
       // 2026-06-02 변경: ONU 측정값 입력 안내 문구를 복구합니다. 변경 전: unitText 미정의로 점검 시작 시 렌더링 오류 발생.
       const checkItemName = getItemCheckName(item);
       const methodText = getItemMethodText(item);
+      // 2026-06-04 변경: unitText 변수가 실제로 선언되지 않아 측정 항목 렌더링이 멈출 수 있던 문제를 수정합니다.
+      // 변경 전: unitText 미정의. 변경 후: ONU는 0000 -> 00.00, 그 외 측정 항목은 000 -> 00.0 안내를 표시합니다.
+      const unitText = isCaOnuMeasurementItem(item) ? '0000 → 00.00' : '000 → 00.0';
       const measureHtml = measurementOnly ? `
         <div class="measure-row">
           <div class="measure-wrap">
@@ -1767,6 +1888,7 @@
           const methodText = getItemMethodText(item);
           return {
             sourceRow: item.sourceRow || 0,
+            sourceSheet: item.sourceSheet || '',
             system: item.system || '',
             equipment: item.equipment || '',
             qty: item.qty || item.quantity || '',
@@ -1812,7 +1934,142 @@
     }
 
     // ========================================================================
-    // 6. 히스토리
+    // 6. 옥외 시설물 원본형 표
+    // ========================================================================
+    async function loadOutdoorData() {
+      const body = document.getElementById('outdoor-body');
+      if (!body) return;
+      body.innerHTML = '<div class="empty">옥외 시설물 점검 데이터를 불러오는 중입니다.</div>';
+
+      try {
+        outdoorData = await requestJson({ action: 'outdoor', t: Date.now() });
+        outdoorResults = JSON.parse(JSON.stringify(outdoorData.results || {}));
+        renderOutdoorTable();
+      } catch (err) {
+        body.innerHTML = `<div class="empty">옥외 시설물 데이터를 불러오지 못했습니다.<br>${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function getOutdoorResult(sourceRow, locationName) {
+      const rowKey = String(sourceRow);
+      return String(outdoorResults[rowKey]?.[locationName] || '');
+    }
+
+    function setOutdoorResult(sourceRow, locationName, result) {
+      const rowKey = String(sourceRow);
+      if (!outdoorResults[rowKey]) outdoorResults[rowKey] = {};
+      outdoorResults[rowKey][locationName] = getOutdoorResult(sourceRow, locationName) === result ? '' : result;
+      renderOutdoorTable();
+    }
+
+    function renderOutdoorTable() {
+      const body = document.getElementById('outdoor-body');
+      if (!body || !outdoorData) return;
+
+      const locations = outdoorData.locations || [];
+      const items = outdoorData.items || [];
+      if (!locations.length || !items.length) {
+        body.innerHTML = '<div class="empty">옥외 시설물 원본 표 데이터가 없습니다.</div>';
+        return;
+      }
+
+      let html = `<div class="card">
+        <div class="section-title" style="margin-top:0;">${escapeHtml(outdoorData.title || '옥외 시설물 점검')}</div>
+        <div class="muted">좌우로 밀어서 원본 장소 열을 확인합니다.</div>
+      </div>
+      <div class="outdoor-table-scroll">
+        <table class="outdoor-table">
+          <thead>
+            <tr>
+              <th class="outdoor-meta-col outdoor-sticky-left">구분</th>
+              <th class="outdoor-meta-col">장비명</th>
+              <th class="outdoor-meta-col">점검 항목</th>
+              <th class="outdoor-method-col">점검 방법</th>`;
+
+      locations.forEach(location => {
+        html += `<th>${escapeHtml(location.name)}</th>`;
+      });
+
+      html += `</tr></thead><tbody>`;
+
+      items.forEach(item => {
+        html += `<tr>
+          <td class="outdoor-meta-col outdoor-sticky-left">${escapeHtml(item.category || '')}</td>
+          <td class="outdoor-meta-col">${escapeHtml(item.equipment || '')}</td>
+          <td class="outdoor-meta-col">${escapeHtml(item.checkItem || '')}</td>
+          <td class="outdoor-method-col">${escapeHtml(item.checkMethod || '')}</td>`;
+
+        locations.forEach(location => {
+          const current = getOutdoorResult(item.sourceRow, location.name);
+          html += `<td>
+            <div class="outdoor-result-cell">
+              <button class="outdoor-result-btn ok ${current === 'ok' ? 'active' : ''}" type="button"
+                onclick="setOutdoorResult(${Number(item.sourceRow || 0)}, decodeURIComponent('${encodeURIComponent(location.name)}'), 'ok')">○</button>
+              <button class="outdoor-result-btn ng ${current === 'ng' ? 'active' : ''}" type="button"
+                onclick="setOutdoorResult(${Number(item.sourceRow || 0)}, decodeURIComponent('${encodeURIComponent(location.name)}'), 'ng')">X</button>
+            </div>
+          </td>`;
+        });
+
+        html += '</tr>';
+      });
+
+      html += '</tbody></table></div>';
+      body.innerHTML = html;
+    }
+
+    async function saveOutdoorResults() {
+      const inspector = document.getElementById('outdoor-inspector-name').value.trim();
+      const statusEl = document.getElementById('outdoor-save-status');
+      const button = document.getElementById('btn-outdoor-save');
+
+      if (!inspector) return alert('점검자를 입력해 주세요.');
+      if (!outdoorData) await loadOutdoorData();
+      if (!outdoorData) return;
+
+      saveOutdoorInspectorName();
+
+      const payloadItems = [];
+      (outdoorData.items || []).forEach(item => {
+        (outdoorData.locations || []).forEach(location => {
+          payloadItems.push({
+            sourceRow: item.sourceRow,
+            locationName: location.name,
+            result: getOutdoorResult(item.sourceRow, location.name)
+          });
+        });
+      });
+
+      try {
+        button.disabled = true;
+        statusEl.textContent = '옥외 시설물 점검 결과를 저장 중입니다.';
+        statusEl.className = 'save-status saving';
+        const response = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'outdoorSave',
+            date: todayDateKey(),
+            inspector,
+            items: payloadItems
+          }),
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+        });
+        const data = await response.json();
+        if (data.status && data.status !== 'ok') throw new Error(data.message || '저장 실패');
+        statusEl.textContent = `저장 완료: ${data.savedCount || 0}칸`;
+        statusEl.className = 'save-status';
+        outdoorData = null;
+        await loadOutdoorData();
+      } catch (err) {
+        statusEl.textContent = err.message || '저장에 실패했습니다.';
+        statusEl.className = 'save-status error';
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    // ========================================================================
+    // 7. 히스토리
     // ========================================================================
     function renderHistoryFilter() {
       const select = document.getElementById('history-filter-loc');
@@ -2294,6 +2551,7 @@
       document.querySelectorAll('.tab-btn').forEach(button => button.classList.toggle('active', button.dataset.tab === tab));
       document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
       document.getElementById(`sec-${tab}`).classList.add('active');
+      if (tab === 'outdoor' && !outdoorData) loadOutdoorData();
       if (tab === 'history') renderHistory();
       if (tab === 'dashboard') loadDashboard();
       if (tab === 'memo') renderMemoRecords();
