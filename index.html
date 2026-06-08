@@ -122,57 +122,33 @@
     /* ==========================================================================
        5. 옥외 시설물 점검
        ========================================================================== */
-    .outdoor-panel {
-      margin-bottom: 12px;
-      padding: 14px;
-      border-radius: var(--radius);
-      /* 2026-06-04 변경: 옥외 타이틀 카드를 스크린샷 기준의 진한 배경으로 변경합니다. */
-      /* 변경 전: 흰색 카드. 변경 후: surface 색상 카드. */
-      background: var(--surface);
-      border: 1px solid var(--surface);
-    }
-
+    .outdoor-panel,
     .outdoor-check-card {
       margin-bottom: 12px;
       padding: 14px;
       border-radius: var(--radius);
-      /* 2026-06-04 변경: 선택 장소 체크리스트 카드는 어두운 배경 안에 흰 항목을 쌓는 구조로 변경합니다. */
-      /* 변경 전: 흰색 카드. 변경 후: surface 색상 카드. */
-      background: var(--surface);
-      border: 1px solid var(--surface);
+      background: var(--surface3);
+      border: 1px solid var(--border);
     }
 
     .outdoor-top {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       gap: 12px;
+      margin-bottom: 12px;
     }
 
     .outdoor-title {
-      color: var(--text2);
+      color: var(--surface3);
       font-size: 16px;
       font-weight: 800;
     }
 
     .outdoor-sub {
       margin-top: 2px;
-      color: var(--text3);
-      font-size: 12px;
-    }
-
-    .outdoor-year-input {
-      flex: 0 0 auto;
-      width: 86px;
-      height: 40px;
-      padding: 0 10px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: var(--surface3);
       color: var(--text);
-      font-size: 13px;
-      font-weight: 800;
-      outline: none;
+      font-size: 12px;
     }
 
     .outdoor-group-filter {
@@ -200,6 +176,7 @@
     }
 
     .outdoor-group-btn.active {
+      border: 0px solid var(--border);
       background: var(--accent2);
       color: var(--surface);
     }
@@ -213,23 +190,19 @@
 
     .outdoor-location-card {
       width: 100%;
-      /* 2026-06-08 변경: 옥외 장소 선택 버튼 높이를 42px -> 24px로 줄입니다. */
-      /* 변경 전: min-height 42px, padding 7px 8px. 변경 후: min-height 24px, padding 3px 6px. */
-      min-height: 24px;
-      padding: 3px 6px;
+      min-height: 20px;
+      padding: 7px 8px;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      background: var(--surface2);
+      background: var(--surface3);
       color: var(--text);
       text-align: left;
       cursor: pointer;
     }
 
     .outdoor-location-card.active {
-      /* 2026-06-04 변경: 선택 장소 카드를 스크린샷처럼 옅은 노랑 배경과 빨간 테두리로 강조합니다. */
-      /* 변경 전: 연한 포인트 배경. 변경 후: #fff7b3 배경 + accent 테두리. */
       border-color: var(--accent);
-      background: #fff7b3;
+      background: var(--theme-accent-background);
     }
 
     .outdoor-location-head {
@@ -242,10 +215,9 @@
     .outdoor-location-name {
       overflow: hidden;
       color: var(--text);
-      /* 2026-06-08 변경: 장소명을 계속 표시하되 버튼 축소에 맞춰 글자 크기를 13px -> 12px로 줄입니다. */
-      font-size: 12px;
-      font-weight: 800;
-      line-height: 1.1;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.2;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
@@ -258,14 +230,12 @@
     }
 
     .outdoor-complete-tag {
-      border-radius: 999px;
-      /* 2026-06-08 변경: 미점검/점검완료 태그를 작은 버튼 높이에 맞춰 padding 2px 6px -> 1px 4px로 줄입니다. */
-      padding: 1px 4px;
+      border-radius: 10px;
+      padding: 2px 6px;
       background: rgba(46, 204, 113, 0.12);
       color: #1f8d48;
-      /* 2026-06-08 변경: 미점검/점검완료 글자 크기를 9px -> 8px로 줄입니다. */
-      font-size: 8px;
-      font-weight: 900;
+      font-size: 9px;
+      font-weight: 500;
     }
 
     .outdoor-complete-tag.empty {
@@ -275,9 +245,8 @@
 
     .outdoor-defect-rate {
       color: var(--text);
-      /* 2026-06-08 변경: 불량률 글자 크기를 11px -> 9px로 줄입니다. */
-      font-size: 9px;
-      font-weight: 900;
+      font-size: 11px;
+      font-weight: 500;
     }
 
     .outdoor-defect-rate.ng {
@@ -297,7 +266,7 @@
     }
 
     .outdoor-check-location {
-      color: var(--text2);
+      color: var(--text);
       font-size: 15px;
       font-weight: 800;
     }
@@ -310,8 +279,7 @@
     .outdoor-check-item {
       padding: 10px;
       border-radius: var(--radius-sm);
-      background: var(--surface3);
-      border: 1px solid var(--border);
+      background: var(--surface2);
     }
 
     .outdoor-check-row {
@@ -363,37 +331,6 @@
       border-color: var(--ng);
       background: rgba(231, 76, 60, 0.16);
       color: var(--ng);
-    }
-
-    .run-memo-field {
-      margin-top: 12px;
-    }
-
-    .run-memo-label {
-      color: var(--text2);
-      font-size: 13px;
-      font-weight: 800;
-    }
-
-    .save-area {
-      position: static;
-      z-index: 10;
-      margin: 0 -16px;
-      padding: 8px 16px 0;
-      background: var(--surface2);
-    }
-
-    .save-area .btn-primary {
-      max-width: 400px;
-      margin: 0 auto;
-      display: block;
-    }
-
-    .save-area .btn-secondary {
-      max-width: 400px;
-      margin-left: auto;
-      margin-right: auto;
-      display: block;
     }
 
     .tab-btn.active {
@@ -1561,14 +1498,12 @@
                 <div class="outdoor-title">옥외 시설물 점검</div>
                 <div class="outdoor-sub">K1/K2 지역별 장소 상태를 확인하고 저장합니다.</div>
               </div>
-              <!-- 2026-06-04 변경: 테스트 앱은 올해 사용 기준이라 연도 분리 없이 2026년 표시만 제공합니다. -->
-              <!-- 변경 전: 연도 선택 없음. 변경 후: 스크린샷 구조에 맞춰 2026년 선택 박스를 표시합니다. -->
-              <select class="outdoor-year-input" id="outdoor-year" aria-label="점검년도">
-                <option value="2026" selected>2026년</option>
-              </select>
             </div>
+            <div id="outdoor-body"><div class="empty">옥외 시설물 점검 데이터를 불러오는 중입니다.</div></div>
           </div>
-          <div id="outdoor-body"><div class="empty">옥외 시설물 점검 데이터를 불러오는 중입니다.</div></div>
+          <div class="save-status" id="outdoor-save-status"></div>
+          <button class="btn-primary" id="btn-outdoor-save" onclick="saveOutdoorResults()">옥외 시설물 저장</button>
+          <button class="btn-secondary" style="margin-top:8px;" onclick="backToLocationSelect()">장소 선택으로 돌아가기</button>
         </div>
       </section>
 
@@ -1701,9 +1636,6 @@
     // 2026-06-04 변경: 옥외 시설물은 별도 탭이 아니라 장소 선택 목록 맨 아래의 내부 진입값으로 처리합니다.
     // 변경 전: 옥외 탭 1개를 새로 만들었습니다. 변경 후: 점검 장소 목록 아래 버튼으로 진입합니다.
     const OUTDOOR_ENTRY_LOCATION = '__OUTDOOR_INSPECTION__';
-    // 2026-06-04 변경: 옥외 장소별 비고는 Google Sheet의 비고 행을 우선 사용하고, 저장 전 임시값만 브라우저에 유지합니다.
-    // 변경 전: 비고를 브라우저 저장소에만 유지. 변경 후: 시트 비고가 있으면 시트 값을 우선 표시합니다.
-    const OUTDOOR_MEMO_STORAGE_KEY = 'ca_check_outdoor_location_memos';
     const OUTDOOR_LOCATION_GROUP_OVERRIDES = {
       'SR3동': 'K2',
       '정문동': 'K1',
@@ -1755,10 +1687,7 @@
 
     function renderLocationList() {
       const listEl = document.getElementById('location-list');
-      // 2026-06-08 변경: 장소목록에서 넘어온 일반 "옥외 시설물 점검" 버튼은 숨깁니다.
-      // 변경 전: 위쪽 일반 장소 버튼 + 아래쪽 옥외 전용 버튼이 2개 표시됨.
-      // 변경 후: 아래쪽 옥외 전용 버튼만 남겨 실제 옥외 점검 화면으로 진입합니다.
-      const groups = (appData.groups || []).filter(item => item.location !== '옥외 시설물 점검');
+      const groups = appData.groups || [];
       const grouped = {};
 
       groups.forEach(item => {
@@ -2151,7 +2080,6 @@
     // ========================================================================
     // 6. 옥외 시설물 원본형 표
     // ========================================================================
-
     async function loadOutdoorData() {
       const body = document.getElementById('outdoor-body');
       if (!body) return;
@@ -2160,38 +2088,12 @@
       try {
         outdoorData = await requestJson({ action: 'outdoor', t: Date.now() });
         outdoorResults = JSON.parse(JSON.stringify(outdoorData.results || {}));
-        outdoorData.locationMemos = mergeOutdoorLocationMemos(outdoorData.locationMemos || {}, loadOutdoorLocationMemos());
         const visibleLocations = getVisibleOutdoorLocations();
-        if (!outdoorSelectedLocation || !visibleLocations.some(location => location.name === outdoorSelectedLocation)) {
-          outdoorSelectedLocation = visibleLocations[0]?.name || outdoorData.locations?.[0]?.name || '';
-        }
+        outdoorSelectedLocation = visibleLocations[0]?.name || outdoorData.locations?.[0]?.name || '';
         renderOutdoor();
       } catch (err) {
         body.innerHTML = `<div class="empty">옥외 시설물 데이터를 불러오지 못했습니다.<br>${escapeHtml(err.message)}</div>`;
       }
-    }
-
-    function loadOutdoorLocationMemos() {
-      try {
-        return JSON.parse(localStorage.getItem(OUTDOOR_MEMO_STORAGE_KEY) || '{}') || {};
-      } catch (err) {
-        return {};
-      }
-    }
-
-    function mergeOutdoorLocationMemos(sheetMemos, localMemos) {
-      const merged = { ...(localMemos || {}) };
-      Object.entries(sheetMemos || {}).forEach(([locationName, memoState]) => {
-        // 2026-06-04 변경: Google Sheet의 비고 행 값을 브라우저 임시 저장값보다 우선합니다.
-        // 변경 전: localStorage 값이 항상 우선. 변경 후: 시트에 저장된 비고가 있으면 시트 값을 표시합니다.
-        if (memoState && String(memoState.memo || '').trim()) merged[locationName] = memoState;
-      });
-      return merged;
-    }
-
-    function saveOutdoorLocationMemos() {
-      if (!outdoorData) return;
-      localStorage.setItem(OUTDOOR_MEMO_STORAGE_KEY, JSON.stringify(outdoorData.locationMemos || {}));
     }
 
     function getOutdoorResult(sourceRow, locationName) {
@@ -2199,46 +2101,19 @@
       return String(outdoorResults[rowKey]?.[locationName] || '');
     }
 
-    function setOutdoorResult(sourceRow, nextResult) {
-      if (!outdoorData || !outdoorSelectedLocation) return;
+    function setOutdoorResult(sourceRow, locationName, result) {
       const rowKey = String(sourceRow);
       if (!outdoorResults[rowKey]) outdoorResults[rowKey] = {};
-      const currentResult = getOutdoorResult(sourceRow, outdoorSelectedLocation);
-      outdoorResults[rowKey][outdoorSelectedLocation] = currentResult === nextResult ? '' : nextResult;
+      outdoorResults[rowKey][locationName] = getOutdoorResult(sourceRow, locationName) === result ? '' : result;
       renderOutdoor();
-    }
-
-    function isOutdoorMetaItem(item) {
-      const criteria = String(item.criteria || '').trim();
-      const method = String(item.checkMethod || '').trim();
-      // 2026-06-04 변경: 원본의 21~22행은 체크 항목이 아니라 점검일/점검자 기록 행입니다.
-      // 변경 전: 점검일/점검자 행도 체크리스트에 섞일 수 있음. 변경 후: 화면 점검항목에서 제외합니다.
-      return !method && (criteria === '점검일' || criteria === '점검자');
-    }
-
-    function getOutdoorCheckItems() {
-      return (outdoorData?.items || []).filter(item => !isOutdoorMetaItem(item));
     }
 
     function getOutdoorItemResult(locationName, sourceRow) {
       return getOutdoorResult(sourceRow, locationName);
     }
 
-    function getOutdoorLocationMemo(locationName) {
-      if (!outdoorData) return '';
-      return String(outdoorData.locationMemos?.[locationName]?.memo || '');
-    }
-
-    function setOutdoorLocationMemo(value) {
-      if (!outdoorData || !outdoorSelectedLocation) return;
-      if (!outdoorData.locationMemos) outdoorData.locationMemos = {};
-      if (!outdoorData.locationMemos[outdoorSelectedLocation]) outdoorData.locationMemos[outdoorSelectedLocation] = {};
-      outdoorData.locationMemos[outdoorSelectedLocation].memo = value;
-      saveOutdoorLocationMemos();
-    }
-
     function getOutdoorSummary(locationName) {
-      const values = getOutdoorCheckItems().map(item => getOutdoorItemResult(locationName, item.sourceRow));
+      const values = (outdoorData?.items || []).map(item => getOutdoorItemResult(locationName, item.sourceRow));
       const okCount = values.filter(value => value === 'ok').length;
       const ngCount = values.filter(value => value === 'ng').length;
       const checkedCount = okCount + ngCount;
@@ -2294,9 +2169,9 @@
       if (!body || !outdoorData) return;
 
       const locations = outdoorData.locations || [];
-      const items = getOutdoorCheckItems();
+      const items = outdoorData.items || [];
       if (!locations.length || !items.length) {
-        body.innerHTML = '<div class="empty">옥외 시설물 원본 데이터가 없습니다.</div>';
+        body.innerHTML = '<div class="empty">옥외 시설물 원본 표 데이터가 없습니다.</div>';
         return;
       }
       const visibleLocations = getVisibleOutdoorLocations();
@@ -2325,12 +2200,11 @@
       html += '</div>';
 
       const selectedSummary = getOutdoorSummary(outdoorSelectedLocation);
-      const selectedMemo = getOutdoorLocationMemo(outdoorSelectedLocation);
       html += `<div class="outdoor-check-card">
         <div class="outdoor-check-title">
           <div>
             <div class="outdoor-check-location">${escapeHtml(outdoorSelectedLocation)}</div>
-            <div class="outdoor-sub">2026년 연간 · ○ ${selectedSummary.okCount} · X ${selectedSummary.ngCount}</div>
+            <div class="outdoor-sub">○ ${selectedSummary.okCount} · X ${selectedSummary.ngCount}</div>
           </div>
           ${renderOutdoorDefectRate(selectedSummary)}
         </div>
@@ -2345,81 +2219,64 @@
               <div class="outdoor-check-desc">${escapeHtml(item.checkMethod || '')}</div>
             </div>
             <div class="outdoor-result-buttons">
-              <button class="outdoor-result-btn ok ${current === 'ok' ? 'active' : ''}" type="button" onclick="setOutdoorResult(${Number(item.sourceRow || 0)}, 'ok')">○</button>
-              <button class="outdoor-result-btn ng ${current === 'ng' ? 'active' : ''}" type="button" onclick="setOutdoorResult(${Number(item.sourceRow || 0)}, 'ng')">X</button>
+              <button class="outdoor-result-btn ok ${current === 'ok' ? 'active' : ''}" type="button" onclick="setOutdoorResult(${Number(item.sourceRow || 0)}, decodeURIComponent('${encodeURIComponent(outdoorSelectedLocation)}'), 'ok')">○</button>
+              <button class="outdoor-result-btn ng ${current === 'ng' ? 'active' : ''}" type="button" onclick="setOutdoorResult(${Number(item.sourceRow || 0)}, decodeURIComponent('${encodeURIComponent(outdoorSelectedLocation)}'), 'ng')">X</button>
             </div>
           </div>
         </div>`;
       });
 
-      html += `</div>
-        <div class="run-memo-field">
-          <div class="run-memo-label">점검 기록 (비고)</div>
-          <textarea class="run-memo-input" id="outdoor-location-memo" placeholder="이 장소의 특이사항을 기록합니다."
-            oninput="setOutdoorLocationMemo(this.value)">${escapeHtml(selectedMemo)}</textarea>
-        </div>
-      </div>
-      <div class="save-area">
-        <div class="save-status" id="outdoor-save-status"></div>
-        <button class="btn-primary" id="btn-outdoor-save" onclick="saveOutdoorResults()">데이터 저장</button>
-        <button class="btn-secondary" style="margin-top:8px;" onclick="backToLocationSelect()">장소 선택으로 돌아가기</button>
-      </div>`;
+      html += '</div></div>';
       body.innerHTML = html;
     }
 
     async function saveOutdoorResults() {
-      if (!outdoorData || !outdoorSelectedLocation) return;
       const inspector = document.getElementById('inspector-name').value.trim();
       const statusEl = document.getElementById('outdoor-save-status');
       const button = document.getElementById('btn-outdoor-save');
 
-      if (!inspector) {
-        if (statusEl) {
-          statusEl.textContent = '점검자를 입력해 주세요.';
-          statusEl.className = 'save-status error';
-        }
-        return;
-      }
+      if (!inspector) return alert('점검자를 입력해 주세요.');
+      if (!outdoorData) await loadOutdoorData();
+      if (!outdoorData) return;
 
       saveInspectorName();
 
-      const payloadItems = getOutdoorCheckItems().map(item => ({
-        sourceRow: item.sourceRow,
-        locationName: outdoorSelectedLocation,
-        result: getOutdoorResult(item.sourceRow, outdoorSelectedLocation)
-      }));
+      const payloadItems = [];
+      (outdoorData.items || []).forEach(item => {
+        (outdoorData.locations || []).forEach(location => {
+          payloadItems.push({
+            sourceRow: item.sourceRow,
+            locationName: location.name,
+            result: getOutdoorResult(item.sourceRow, location.name)
+          });
+        });
+      });
 
       try {
-        if (button) button.disabled = true;
-        if (statusEl) {
-          statusEl.textContent = '저장 중입니다.';
-          statusEl.className = 'save-status saving';
-        }
+        button.disabled = true;
+        statusEl.textContent = '옥외 시설물 점검 결과를 저장 중입니다.';
+        statusEl.className = 'save-status saving';
         const response = await fetch(GAS_URL, {
           method: 'POST',
           body: JSON.stringify({
             action: 'outdoorSave',
             date: todayDateKey(),
             inspector,
-            locationName: outdoorSelectedLocation,
-            locationMemo: getOutdoorLocationMemo(outdoorSelectedLocation),
             items: payloadItems
           }),
           headers: { 'Content-Type': 'text/plain;charset=utf-8' }
         });
         const data = await response.json();
         if (data.status && data.status !== 'ok') throw new Error(data.message || '저장 실패');
-        if (statusEl) {
-          statusEl.textContent = `저장 완료: ${data.savedCount || 0}건 반영`;
-          statusEl.className = 'save-status';
-        }
+        statusEl.textContent = `저장 완료: ${data.savedCount || 0}칸`;
+        statusEl.className = 'save-status';
+        outdoorData = null;
+        await loadOutdoorData();
       } catch (err) {
-        if (statusEl) {
-          statusEl.textContent = err.message || '저장에 실패했습니다.';
-          statusEl.className = 'save-status error';
-        }
+        statusEl.textContent = err.message || '저장에 실패했습니다.';
+        statusEl.className = 'save-status error';
       } finally {
-        if (button) button.disabled = false;
+        button.disabled = false;
       }
     }
 
