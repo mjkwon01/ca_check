@@ -1962,7 +1962,10 @@
     function renderCaDetailGroup(items) {
       const locationItems = items.filter(item => isCaDetailLocationItem(item));
       const measureItems = items.filter(item => !isCaDetailLocationItem(item));
-      const byEquipment = {};
+      // 2026-06-08 변경: 상세측정 카드를 장비명 문자열이 아니라 원본 시트의 측정 묶음 키로 구분합니다.
+      // 변경 전: 같은 장비명인 FSK-TX 상향/하향이 한 카드로 합쳐질 수 있었습니다.
+      // 변경 후: detailGroupKey별로 분리하고 채널명/주파수/서비스명 3개를 카드 타이틀에 표시합니다.
+      const byDetailGroup = {};
       let html = '';
 
       locationItems.forEach(item => {
@@ -1975,16 +1978,23 @@
       });
 
       measureItems.forEach(item => {
-        const equipment = item.equipment || '장비';
-        if (!byEquipment[equipment]) byEquipment[equipment] = [];
-        byEquipment[equipment].push(item);
+        const detailTitle = getCaDetailCardTitle(item);
+        const groupKey = item.detailGroupKey || detailTitle;
+        if (!byDetailGroup[groupKey]) {
+          byDetailGroup[groupKey] = {
+            title: detailTitle,
+            items: []
+          };
+        }
+        byDetailGroup[groupKey].items.push(item);
       });
 
-      Object.entries(byEquipment).forEach(([equipment, detailItems]) => {
+      Object.values(byDetailGroup).forEach(detailGroup => {
+        const detailItems = detailGroup.items;
         const firstIdx = detailItems[0].idx;
         html += `<div class="ca-detail-card" id="ca-detail-card-${firstIdx}">
           <div class="ca-detail-card-head">
-            <div class="ca-detail-title">${escapeHtml(equipment)}</div>
+            <div class="ca-detail-title">${escapeHtml(detailGroup.title)}</div>
             <button class="ca-detail-ng-btn" id="ca-detail-ng-${firstIdx}"
               onclick="toggleCaDetailNg(${firstIdx}, '${detailItems.map(item => item.idx).join(',')}')">X</button>
           </div>
@@ -2028,6 +2038,16 @@
 
     function isMeasurementOnlyItem(item) {
       return isCaOnuMeasurementItem(item) || isCaDetailMeasurementItem(item);
+    }
+
+    function getCaDetailCardTitle(item) {
+      // 2026-06-08 신규: 서버가 분리해 준 채널명/주파수/서비스명을 빠짐없이 상세측정 카드 타이틀로 조합합니다.
+      const channelParts = [
+        item.detailChannel,
+        item.detailFrequency,
+        item.detailChannelName
+      ].map(value => String(value || '').trim()).filter(Boolean);
+      return channelParts.join(' · ') || item.detailTitle || item.equipment || '장비';
     }
 
     function getCaDetailMeasureLabel(item, detailIndex) {
