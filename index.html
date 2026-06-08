@@ -1552,7 +1552,7 @@
             <textarea class="run-memo-input" id="outdoor-location-memo" placeholder="선택한 옥외 장소의 특이사항을 입력합니다." oninput="setOutdoorLocationMemo(this.value)"></textarea>
           </div>
           <div class="save-status" id="outdoor-save-status"></div>
-          <button class="btn-primary" id="btn-outdoor-save" onclick="saveOutdoorResults()">옥외 시설물 저장</button>
+          <button class="btn-primary" id="btn-outdoor-save" onclick="saveOutdoorResults()">선택 장소 저장</button>
           <button class="btn-secondary" style="margin-top:8px;" onclick="backToLocationSelect()">장소 선택으로 돌아가기</button>
         </div>
       </section>
@@ -2343,23 +2343,24 @@
       if (!inspector) return alert('점검자를 입력해 주세요.');
       if (!outdoorData) await loadOutdoorData();
       if (!outdoorData) return;
+      if (!outdoorSelectedLocation) return alert('저장할 옥외 장소를 선택해 주세요.');
 
       saveInspectorName();
 
       const payloadItems = [];
       (outdoorData.items || []).forEach(item => {
-        (outdoorData.locations || []).forEach(location => {
-          payloadItems.push({
-            sourceRow: item.sourceRow,
-            locationName: location.name,
-            result: getOutdoorResult(item.sourceRow, location.name)
-          });
+        // 2026-06-08 변경: 옥외 저장 대상을 전체 장소에서 현재 선택 장소 1곳으로 제한합니다.
+        // 변경 전: 모든 장소 결과를 한 번에 전송. 변경 후: 선택 장소의 점검일/점검자/비고만 갱신합니다.
+        payloadItems.push({
+          sourceRow: item.sourceRow,
+          locationName: outdoorSelectedLocation,
+          result: getOutdoorResult(item.sourceRow, outdoorSelectedLocation)
         });
       });
 
       try {
         button.disabled = true;
-        statusEl.textContent = '옥외 시설물 점검 결과를 저장 중입니다.';
+        statusEl.textContent = `${outdoorSelectedLocation} 점검 결과를 저장 중입니다.`;
         statusEl.className = 'save-status saving';
         const response = await fetch(GAS_URL, {
           method: 'POST',
@@ -2367,6 +2368,7 @@
             action: 'outdoorSave',
             date: todayDateKey(),
             inspector,
+            targetLocationName: outdoorSelectedLocation,
             items: payloadItems,
             locationMemos: outdoorLocationMemos
           }),
@@ -2374,7 +2376,7 @@
         });
         const data = await response.json();
         if (data.status && data.status !== 'ok') throw new Error(data.message || '저장 실패');
-        statusEl.textContent = `저장 완료: ${data.savedCount || 0}칸`;
+        statusEl.textContent = `${outdoorSelectedLocation} 저장 완료: ${data.savedCount || 0}칸`;
         statusEl.className = 'save-status';
         outdoorData = null;
         await loadOutdoorData();
