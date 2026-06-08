@@ -140,7 +140,7 @@
     }
 
     .outdoor-title {
-      color: var(--surface3);
+      color: var(--text);
       font-size: 16px;
       font-weight: 800;
     }
@@ -1687,7 +1687,13 @@
 
     function renderLocationList() {
       const listEl = document.getElementById('location-list');
-      const groups = appData.groups || [];
+      // 2026-06-08 변경: 장소목록에서 넘어온 일반 옥외 시설물 점검 버튼은 공백 차이와 상관없이 숨깁니다.
+      // 변경 전: 장소목록의 옥외 버튼 + 아래쪽 옥외 전용 버튼이 2개 표시됨.
+      // 변경 후: 아래쪽 옥외 전용 버튼만 남깁니다.
+      const groups = (appData.groups || []).filter(item => {
+        const locationKey = String(item.location || '').replace(/\s/g, '');
+        return locationKey !== '옥외시설물점검';
+      });
       const grouped = {};
 
       groups.forEach(item => {
