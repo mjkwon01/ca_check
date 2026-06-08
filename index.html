@@ -190,8 +190,8 @@
 
     .outdoor-location-card {
       width: 100%;
-      min-height: 12px;
-      padding: 0px 0px;
+      min-height: 42px;
+      padding: 9px 10px;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       background: var(--surface3);
@@ -217,7 +217,8 @@
       color: var(--text);
       font-size: 13px;
       font-weight: 600;
-      line-height: 1.2;
+      /* 2026-06-08 변경: 한글 장소명 위/아래가 잘리지 않도록 줄 높이를 1.2 -> 1.45로 늘립니다. */
+      line-height: 1.45;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
@@ -255,7 +256,9 @@
       color: var(--ng);
     }
 
-    .outdoor-defect-rate.empty {
+    /* 2026-06-08 변경: 불량률 미표시 상태가 전역 .empty padding 18px과 충돌하지 않도록 전용 클래스로 분리합니다. */
+    /* 변경 전: .outdoor-defect-rate.empty 때문에 전역 .empty 스타일이 같이 적용됨. 변경 후: .is-empty-rate만 적용됨. */
+    .outdoor-defect-rate.is-empty-rate {
       color: var(--text3);
     }
 
@@ -2264,7 +2267,7 @@
     }
 
     function renderOutdoorDefectRate(summary) {
-      if (summary.defectRate === null || summary.defectRate === undefined) return `<span class="outdoor-defect-rate empty">불량 -</span>`;
+      if (summary.defectRate === null || summary.defectRate === undefined) return `<span class="outdoor-defect-rate is-empty-rate">불량 -</span>`;
       return `<span class="outdoor-defect-rate${summary.ngCount > 0 ? ' ng' : ''}">불량 ${summary.defectRate}%</span>`;
     }
 
