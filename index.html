@@ -1,0 +1,2936 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>CA 계획점검</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap');
+
+    /* ==========================================================================
+       1. CA 테스트 앱 테마
+       ========================================================================== */
+    :root {
+      --bg: #F3F3F3;
+      --surface: #0C0D3D;
+      --surface2: #F3F3F3;
+      --surface3: #FFFFFF;
+      --border: #C8CBD3;
+      --accent: #CD636E;
+      --accent2: #DFAAAF;
+      --accent-text: #FFFFFF;
+      --ok: #2ecc71;
+      --ng: #e74c3c;
+      --warn: #DB8D0F;
+      --text: #000000;
+      --text2: #FFFFFF;
+      --text3: #5a5f7a;
+      /* 2026-06-02 변경: NAS_did CA 테마와 같은 색상 코드를 사용합니다. */
+      --theme-equipment-bg: rgba(255, 249, 48, 0.08);
+      --theme-highlight-bg: rgba(255, 249, 48, 0.18);
+      --theme-measure-bg: rgba(255, 249, 48, 0.10);
+      --theme-measure-text: #F2E205;
+      --theme-accent-background: rgba(205, 99, 110, 0.06);
+      /* 2026-06-02 변경: NAS_did 대시보드의 점검 이행 현황 그룹 색상을 동일하게 맞춥니다. */
+      --compliance-tone-k1: #c8b2ee;
+      --compliance-tone-k2: #f7cf88;
+      --compliance-tone-offsite: #b8d2fb;
+      --compliance-tone-hall: #b8d2fb;
+      --compliance-tone-meeting: #bfe8c9;
+      --compliance-tone-video: #c8b2ee;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans KR', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font-family: inherit;
+    }
+
+    .app {
+      max-width: 640px;
+      min-height: 100vh;
+      margin: 0 auto;
+      background: var(--bg);
+    }
+
+    /* ==========================================================================
+       2. 헤더와 탭
+       ========================================================================== */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 12px 16px 10px;
+      background: var(--surface3);
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .header-sub {
+      margin-top: 2px;
+      color: var(--text3);
+      font-size: 12px;
+    }
+
+    .tabs {
+      display: grid;
+      /* 2026-06-04 변경: 옥외 시설물은 별도 탭이 아니라 점검 장소 목록 하단 진입으로 바꿔 탭 수를 6개 -> 5개로 되돌립니다. */
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0;
+      padding: 0 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      min-height: 44px;
+      border: 0;
+      border-bottom: 4px solid transparent;
+      border-radius: 0;
+      background: none;
+      color: var(--text3);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* ==========================================================================
+       5. 옥외 시설물 점검
+       ========================================================================== */
+    .outdoor-panel,
+    .outdoor-check-card {
+      margin-bottom: 12px;
+      padding: 14px;
+      border-radius: var(--radius);
+      background: var(--surface3);
+      border: 1px solid var(--border);
+    }
+
+    .outdoor-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .outdoor-title {
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .outdoor-sub {
+      margin-top: 2px;
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .outdoor-group-filter {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      margin-bottom: 10px;
+      padding-bottom: 2px;
+    }
+
+    .outdoor-group-filter::-webkit-scrollbar {
+      display: none;
+    }
+
+    .outdoor-group-btn {
+      flex: 0 0 auto;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      color: var(--text3);
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .outdoor-group-btn.active {
+      border: 0px solid var(--border);
+      background: var(--accent2);
+      color: var(--surface);
+    }
+
+    .outdoor-location-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .outdoor-location-card {
+      width: 100%;
+      min-height: 42px;
+      padding: 9px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface3);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .outdoor-location-card.active {
+      border-color: var(--accent);
+      background: var(--theme-accent-background);
+    }
+
+    .outdoor-location-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .outdoor-location-name {
+      overflow: hidden;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      /* 2026-06-08 변경: 한글 장소명 위/아래가 잘리지 않도록 줄 높이를 1.2 -> 1.45로 늘립니다. */
+      line-height: 1.45;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .outdoor-location-bottom {
+      display: flex;
+      align-items: center;
+      gap: 0px;
+      white-space: nowrap;
+    }
+
+    /* 2026-06-08 변경: 미점검/점검완료와 불량률 텍스트의 시각 크기를 맞춥니다. */
+    /* 변경 전: 태그 padding 0px 0px, font-weight 500, 줄높이 기본값. 변경 후: min-height 16px, padding 0px 4px, font-weight 600, line-height 1. */
+    .outdoor-complete-tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 16px;
+      border-radius: 10px;
+      padding: 0px 4px;
+      background: rgba(46, 204, 113, 0.12);
+      color: #1f8d48;
+      font-size: 9px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    /* 2026-06-08 변경: 미점검 태그가 전역 .empty 스타일과 충돌하지 않도록 전용 클래스명을 사용합니다. */
+    /* 변경 전: .empty 클래스 때문에 padding 18px이 적용됨. 변경 후: .is-empty 전용 태그 스타일만 적용됨. */
+    .outdoor-complete-tag.is-empty {
+      background: rgba(90, 95, 122, 0.10);
+      color: var(--text3);
+    }
+
+    /* 2026-06-08 변경: 불량률도 태그와 같은 높이 기준으로 정렬합니다. */
+    /* 변경 전: 일반 텍스트 표시. 변경 후: min-height 16px, padding 0px 2px, font-weight 600, line-height 1. */
+    .outdoor-defect-rate {
+      display: inline-flex;
+      align-items: center;
+      min-height: 16px;
+      padding: 0px 2px;
+      color: var(--text);
+      font-size: 9px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    .outdoor-defect-rate.ng {
+      color: var(--ng);
+    }
+
+    /* 2026-06-08 변경: 불량률 미표시 상태가 전역 .empty padding 18px과 충돌하지 않도록 전용 클래스로 분리합니다. */
+    /* 변경 전: .outdoor-defect-rate.empty 때문에 전역 .empty 스타일이 같이 적용됨. 변경 후: .is-empty-rate만 적용됨. */
+    .outdoor-defect-rate.is-empty-rate {
+      color: var(--text3);
+    }
+
+    .outdoor-check-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .outdoor-check-location {
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .outdoor-check-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .outdoor-check-item {
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+    }
+
+    .outdoor-check-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .outdoor-check-name {
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .outdoor-check-desc {
+      margin-top: 3px;
+      color: var(--text3);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .outdoor-result-buttons {
+      display: flex;
+      flex: 0 0 auto;
+      gap: 4px;
+    }
+
+    .outdoor-result-btn {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface3);
+      color: var(--text3);
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .outdoor-result-btn.ok.active {
+      border-color: var(--ok);
+      background: rgba(46, 204, 113, 0.16);
+      color: var(--ok);
+    }
+
+    .outdoor-result-btn.ng.active {
+      border-color: var(--ng);
+      background: rgba(231, 76, 60, 0.16);
+      color: var(--ng);
+    }
+
+    .tab-btn.active {
+      color: var(--accent-text);
+      border-bottom-color: var(--accent);
+    }
+
+    .main {
+      padding: 14px 16px 88px;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .card {
+      margin-bottom: 12px;
+      padding: 16px;
+      border-radius: var(--radius);
+      background: var(--surface3);
+      border: 1px solid var(--border);
+    }
+
+    /* 2026-06-02 변경: 점검자 카드만 배경을 surface, 라벨 글자를 text2로 변경합니다. */
+    .inspector-card {
+      background: var(--surface);
+    }
+
+    .inspector-card .input-label {
+      color: var(--text2);
+    }
+
+    .section-title {
+      margin: 16px 0 10px;
+      color: var(--surface);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .muted {
+      color: var(--text3);
+      font-size: 12px;
+    }
+
+    /* ==========================================================================
+       3. 장소 선택
+       ========================================================================== */
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .input-label {
+      flex: 0 0 auto;
+      color: var(--text2);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .input-field {
+      width: 100%;
+      height: 42px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+    }
+
+    .location-group {
+      margin-bottom: 14px;
+    }
+
+    .location-group-title {
+      margin-bottom: 6px;
+      padding: 0 4px 5px;
+      border-bottom: 1px solid var(--border);
+      color: var(--surface);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .location-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .location-btn {
+      min-height: 44px;
+      padding: 12px 10px;
+      border: 0 solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface3);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      line-height: 1.3;
+    }
+
+    .location-btn.selected {
+      background: var(--accent2);
+      color: var(--surface);
+    }
+
+    .start-area {
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
+      margin: 0 -16px;
+      padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+      background: var(--surface2);
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      width: 100%;
+      min-height: 44px;
+      border-radius: var(--radius);
+      border: 1px solid var(--surface);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--surface);
+      color: var(--text2);
+    }
+
+    .btn-primary:disabled {
+      filter: brightness(0.55);
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: var(--surface3);
+      color: var(--surface);
+    }
+
+    /* ==========================================================================
+       4. 점검 입력
+       ========================================================================== */
+    .inspect-header {
+      margin-bottom: 16px;
+      padding: 16px;
+      border-radius: var(--radius);
+      background: var(--surface3);
+      color: var(--text);
+      border: 0.5px solid var(--border);
+    }
+
+    .inspect-location-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .inspect-location {
+      min-width: 0;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .count-badge {
+      flex: 0 0 auto;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: var(--accent-text);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .inspect-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+      color: var(--text3);
+      font-size: 12px;
+    }
+
+    .equipment-group {
+      margin-bottom: 12px;
+    }
+
+    .equipment-name {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 4px;
+      /* 2026-06-02 변경: 장비그룹상자 배경을 측정 강조색에서 기준 앱과 같은 포인트 배경으로 변경합니다. */
+      background: var(--accent2);
+      color: var(--text);
+      border-left: 3px solid var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+    }
+
+    .equipment-name::after {
+      content: "▼";
+      color: var(--text);
+      font-size: 10px;
+      font-weight: 700;
+      transition: transform 0.2s;
+    }
+
+    .equipment-group.collapsed .equipment-name::after {
+      transform: rotate(-90deg);
+    }
+
+    .eq-items-container {
+      display: block;
+      margin-top: 8px;
+    }
+
+    .equipment-group.collapsed .eq-items-container {
+      display: none;
+    }
+
+    .check-item,
+    .ca-detail-card,
+    .ca-detail-location-field {
+      margin-bottom: 8px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--surface3);
+      color: var(--text);
+      border: 0 solid var(--border);
+    }
+
+    .check-item-top,
+    .ca-detail-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .check-title,
+    .ca-detail-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .check-desc,
+    .ca-detail-label,
+    .ca-detail-location-label {
+      margin-top: 3px;
+      color: var(--text3);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .check-btns {
+      display: flex;
+      gap: 6px;
+      flex: 0 0 auto;
+    }
+
+    .check-btn,
+    .ca-detail-ng-btn {
+      width: 42px;
+      height: 38px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      color: var(--text3);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .check-btn.ok-active {
+      background: rgba(46, 204, 113, 0.16);
+      border-color: var(--ok);
+      color: var(--ok);
+    }
+
+    .check-btn.ng-active,
+    .ca-detail-ng-btn.ng-active {
+      background: rgba(231, 76, 60, 0.16);
+      border-color: var(--ng);
+      color: var(--ng);
+    }
+
+    .measure-row,
+    .ca-detail-grid {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    .ca-detail-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      /* 2026-06-08 변경: 바깥 라벨 제거 후 장비명과 입력란 사이 간격을 10px -> 12px, 입력란 사이 간격을 8px -> 10px로 조정합니다. */
+      margin-top: 12px;
+      gap: 10px;
+    }
+
+    .ca-detail-measure-item {
+      min-width: 0;
+    }
+
+    .measure-wrap {
+      display: flex;
+      align-items: center;
+      min-height: 40px;
+      border-radius: var(--radius-sm);
+      /* 2026-06-02 변경: 수치입력란 배경을 노란 틴트에서 기준 앱과 같은 surface2로 변경합니다. */
+      background: var(--surface2);
+      overflow: hidden;
+    }
+
+    .ca-detail-measure-wrap {
+      display: flex;
+      align-items: center;
+      min-height: 40px;
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      overflow: hidden;
+    }
+
+    /* 2026-06-08 변경: 상세측정 바깥 라벨은 제거하고 입력칸 내부 라벨만 차분하게 표시합니다. */
+    /* 변경 전: min-width 54px, surface 색상, font-weight 800. 변경 후: 58px, text3 색상, font-weight 700. */
+    .ca-detail-measure-prefix {
+      flex: 0 0 auto;
+      min-width: 58px;
+      padding-left: 10px;
+      color: var(--text3);
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .measure-input {
+      width: 100%;
+      min-width: 0;
+      height: 40px;
+      padding: 0 10px;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 14px;
+      text-align: right;
+      outline: none;
+    }
+
+    .ca-detail-measure-input {
+      width: 100%;
+      min-width: 0;
+      height: 40px;
+      padding: 0 10px;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 14px;
+      text-align: right;
+      outline: none;
+    }
+
+    .measure-unit {
+      flex: 0 0 auto;
+      padding-right: 10px;
+      color: var(--text3);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .memo-input,
+    .run-memo-input {
+      width: 100%;
+      min-height: 58px;
+      margin-top: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 13px;
+      resize: vertical;
+      outline: none;
+    }
+
+    /* 2026-06-02 변경: 특이사항은 기본 숨김, X 선택 시 표시합니다. 변경 전: 항상 숨김. */
+    .check-item .memo-input,
+    .ca-detail-card .memo-input {
+      display: none;
+    }
+
+    .check-item.result-ng .memo-input,
+    .ca-detail-card.result-ng .memo-input {
+      display: block;
+    }
+
+    /* 2026-06-02 변경: 측정 위치는 결과값 저장에 필요한 입력칸이라 숨김 대상에서 제외합니다. */
+    .ca-detail-location-field .memo-input,
+    .card .run-memo-input {
+      display: block;
+    }
+
+    .ca-detail-location-input {
+      min-height: 44px;
+      margin-top: 8px;
+    }
+
+    .save-status {
+      min-height: 18px;
+      margin-bottom: 8px;
+      color: var(--text3);
+      font-size: 12px;
+    }
+
+    .save-status.saving {
+      color: var(--accent);
+    }
+
+    .save-status.error {
+      color: var(--ng);
+    }
+
+    /* ==========================================================================
+       5. 히스토리/대시보드/모달
+       ========================================================================== */
+    .filter-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 120px;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .filter-select {
+      height: 40px;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface3);
+      color: var(--text);
+    }
+
+    .history-filter {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .history-filter .filter-select {
+      flex: 1;
+      min-width: 120px;
+      background: var(--surface2);
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+
+    .history-record,
+    .dash-card,
+    .compliance-card {
+      margin-bottom: 10px;
+      padding: 14px;
+      border-radius: var(--radius);
+      background: var(--surface3);
+    }
+
+    .history-top,
+    .dash-card {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .history-record-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .history-location,
+    .dash-title,
+    .compliance-location {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .history-date,
+    .dash-sub,
+    .compliance-latest {
+      color: var(--text3);
+      font-size: 12px;
+    }
+
+    .history-meta {
+      margin-bottom: 8px;
+      color: var(--text3);
+      font-size: 12px;
+    }
+
+    .history-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .history-run-memo {
+      margin-top: 8px;
+      padding: 4px 8px;
+      border-left: 2px solid var(--accent);
+      border-radius: 0 4px 4px 0;
+      background: var(--theme-accent-background);
+      color: var(--accent);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .stat-badge {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .stat-ok {
+      background: rgba(46, 204, 113, 0.12);
+      color: var(--ok);
+    }
+
+    .stat-ng {
+      background: rgba(231, 76, 60, 0.12);
+      color: var(--ng);
+    }
+
+    .stat-memo {
+      background: rgba(243, 156, 18, 0.12);
+      color: var(--warn);
+    }
+
+    .stat-measure {
+      background: var(--theme-measure-bg);
+      color: var(--theme-measure-text);
+    }
+
+    .search-input {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+    }
+
+    .search-filter-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .search-filter-row .filter-select {
+      width: 100%;
+      min-width: 0;
+      padding: 9px 8px;
+      background: var(--surface2);
+      font-size: 12px;
+    }
+
+    .search-result {
+      margin-bottom: 10px;
+      padding: 14px;
+      border-radius: var(--radius);
+      background: var(--surface3);
+    }
+
+    .search-result-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .search-loc {
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .search-date {
+      color: var(--text3);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .search-item-name {
+      margin-bottom: 4px;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .search-memo {
+      padding: 6px 10px;
+      border-left: 2px solid var(--accent);
+      border-radius: 0 4px 4px 0;
+      background: var(--theme-accent-background);
+      color: var(--accent);
+      font-size: 12px;
+    }
+
+    .highlight {
+      padding: 0 2px;
+      border-radius: 2px;
+      background: var(--theme-highlight-bg);
+    }
+
+    /* ==========================================================================
+       6. 대시보드
+       ========================================================================== */
+    .period-filter {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .period-btn {
+      flex: 1;
+      min-height: 40px;
+      padding: 8px 4px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      color: var(--text3);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .period-btn.active {
+      background: var(--accent2);
+      border-color: transparent;
+      color: var(--text);
+    }
+
+    .dash-sec-label {
+      margin: 16px 0 10px;
+      color: var(--surface);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .dash-divider {
+      height: 1px;
+      margin: 18px 0 14px;
+      background: var(--border);
+    }
+
+    .dash-card.count-left {
+      border-left: 4px solid var(--accent);
+    }
+
+    .dash-card.ng-left {
+      border-left: 4px solid var(--ng);
+    }
+
+    .dash-card.warn-left {
+      border-left: 4px solid var(--warn);
+    }
+
+    .dash-card.clickable {
+      cursor: pointer;
+      transition: background 0.15s, transform 0.15s;
+    }
+
+    .dash-card.clickable:active {
+      transform: scale(0.99);
+    }
+
+    .dash-card.clickable.is-open {
+      background: var(--surface2);
+    }
+
+    .dash-card-title {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .dash-card-sub {
+      margin-top: 2px;
+      color: var(--text3);
+      font-size: 12px;
+    }
+
+    .dash-num {
+      color: var(--accent);
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .dash-num.ng {
+      color: var(--ng);
+    }
+
+    .dash-num.memo {
+      color: var(--warn);
+    }
+
+    .dash-arrow {
+      margin-left: 6px;
+      color: var(--text3);
+      font-size: 20px;
+      font-weight: 800;
+      transition: transform 0.15s;
+    }
+
+    .dash-arrow.rotated {
+      transform: rotate(90deg);
+    }
+
+    .dash-list {
+      margin: -4px 0 10px;
+      border-radius: var(--radius-sm);
+      background: var(--surface3);
+      overflow: hidden;
+    }
+
+    .dash-list-item {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dash-list-item:last-child {
+      border-bottom: 0;
+    }
+
+    .dash-list-name {
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .dash-list-sub {
+      margin-top: 3px;
+      color: var(--text3);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .dash-list-memo {
+      margin-top: 4px;
+      color: var(--warn);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .dash-empty {
+      padding: 18px;
+      color: var(--text3);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .compliance-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .compliance-year {
+      color: var(--text3);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .compliance-filter-block {
+      margin-bottom: 10px;
+    }
+
+    .compliance-filter-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .compliance-filter-label {
+      min-width: 32px;
+      color: var(--text3);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .compliance-filter-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .compliance-filter-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .compliance-chip {
+      flex: 0 0 auto;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface2);
+      color: var(--text3);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .compliance-chip.active {
+      background: rgba(242, 226, 5, 0.28);
+      border-color: transparent;
+      color: var(--text);
+    }
+
+    .compliance-chip.active.compliance-tone-k1,
+    .compliance-group-badge.compliance-tone-k1 {
+      background: var(--compliance-tone-k1);
+    }
+
+    .compliance-chip.active.compliance-tone-k2,
+    .compliance-group-badge.compliance-tone-k2 {
+      background: var(--compliance-tone-k2);
+    }
+
+    .compliance-chip.active.compliance-tone-offsite,
+    .compliance-group-badge.compliance-tone-offsite {
+      background: var(--compliance-tone-offsite);
+    }
+
+    .compliance-chip.active.compliance-tone-hall,
+    .compliance-group-badge.compliance-tone-hall {
+      background: var(--compliance-tone-hall);
+    }
+
+    .compliance-chip.active.compliance-tone-meeting,
+    .compliance-group-badge.compliance-tone-meeting {
+      background: var(--compliance-tone-meeting);
+    }
+
+    .compliance-chip.active.compliance-tone-video,
+    .compliance-group-badge.compliance-tone-video {
+      background: var(--compliance-tone-video);
+    }
+
+    .compliance-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .compliance-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .compliance-group-badge {
+      flex: 0 0 auto;
+      padding: 5px 9px;
+      border-radius: var(--radius-sm);
+      background: rgba(242, 226, 5, 0.28);
+      color: var(--surface);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .compliance-month-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .compliance-month {
+      min-height: 38px;
+      padding: 4px 2px;
+      border-radius: 6px;
+      background: var(--surface2);
+      color: var(--text3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.05;
+    }
+
+    .compliance-month.has-record {
+      background:
+        linear-gradient(rgba(46, 204, 112, 0.274), rgba(46, 204, 112, 0.205)),
+        #ffffff;
+      border: 1px solid rgba(46, 140, 78, 0.85);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .compliance-month.has-record:active {
+      transform: scale(0.98);
+    }
+
+    .compliance-month-num {
+      color: var(--text3);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .compliance-month-date {
+      min-height: 14px;
+      margin-top: 2px;
+      font-size: 10px;
+    }
+
+    .empty {
+      padding: 18px;
+      color: var(--text3);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.65);
+      align-items: flex-end;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 640px;
+      max-height: 85vh;
+      margin: 0 auto;
+      padding: 20px 16px 32px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      overflow-y: auto;
+    }
+
+    .save-done-panel {
+      max-width: 300px;
+      margin: auto;
+      padding: 32px 24px;
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text2);
+      text-align: center;
+    }
+
+    .save-done-title {
+      margin-bottom: 8px;
+      color: var(--text2);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .save-done-message {
+      margin-bottom: 20px;
+      color: var(--text2);
+      font-size: 13px;
+    }
+
+    .modal-title {
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    /* 2026-06-02 변경: 히스토리 상세 모달을 NAS_did 기준의 배지형 리스트 구조로 변경합니다. */
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-close {
+      padding: 4px;
+      border: 0;
+      background: none;
+      color: var(--text);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .modal-meta {
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text3);
+      font-size: 12px;
+    }
+
+    .modal-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-item:last-child {
+      border-bottom: 0;
+    }
+
+    .modal-item-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .modal-item-name {
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .modal-item-memo {
+      margin-top: 3px;
+      color: var(--warn);
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.35;
+    }
+
+    .result-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      min-width: 34px;
+      height: 24px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .result-ok-badge {
+      background: rgba(46, 204, 113, 0.12);
+      color: var(--ok);
+    }
+
+    .result-ng-badge {
+      background: rgba(231, 76, 60, 0.12);
+      color: var(--ng);
+    }
+
+    .result-skip-badge {
+      background: rgba(90, 95, 122, 0.2);
+      color: var(--text3);
+    }
+
+    .result-value-badge {
+      min-width: 58px;
+      color: var(--accent);
+    }
+
+    /* ==========================================================================
+       7. 초기 앱 로딩
+       ========================================================================== */
+    /* 2026-06-08 신규: 초기 시스템 정보 로딩 중 빈 화면처럼 보이지 않도록 전체 화면 로딩 페이지를 표시합니다. */
+    #app-loading {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      transition: opacity 0.3s;
+    }
+
+    /* 2026-06-08 신규: AV/DID 앱과 같은 40px 로딩 스피너를 사용합니다. */
+    .spinner {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 16px;
+      border: 3px solid var(--surface2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-msg {
+      color: var(--text3);
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 2026-06-08 신규: 앱 최초 진입 시 서버에서 시스템 정보를 받아올 때까지 표시합니다. -->
+  <div id="app-loading">
+    <div class="spinner"></div>
+    <div class="loading-msg">시스템 정보를 불러오는 중...</div>
+  </div>
+
+  <div class="app">
+    <!-- =====================================================================
+         1. 상단 헤더
+         ===================================================================== -->
+    <header class="header">
+      <div class="header-title">CA 계획점검</div>
+      <div class="header-sub"></div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="inspect" onclick="showTab('inspect')">점검</button>
+      <!-- 2026-06-02 변경: 탭 순서를 점검, 히스토리, 검색, 대시보드, 설정으로 복구합니다. -->
+      <button class="tab-btn" data-tab="history" onclick="showTab('history')">히스토리</button>
+      <button class="tab-btn" data-tab="memo" onclick="showTab('memo')">검색</button>
+      <button class="tab-btn" data-tab="dashboard" onclick="showTab('dashboard')">대시보드</button>
+      <button class="tab-btn" data-tab="settings" onclick="showTab('settings')">설정</button>
+    </nav>
+
+    <main class="main">
+      <!-- ===================================================================
+           2. 점검 화면
+           =================================================================== -->
+      <section class="section active" id="sec-inspect">
+        <div id="step-select">
+          <div class="card inspector-card">
+            <div class="input-row">
+              <div class="input-label">점검자</div>
+              <input class="input-field" id="inspector-name" placeholder="이름을 입력하세요" oninput="updateStartButton()">
+            </div>
+          </div>
+
+          <div id="location-list"><div class="empty">장소를 불러오는 중입니다.</div></div>
+
+          <div class="start-area">
+            <button class="btn-primary" id="btn-start" onclick="startInspection()" disabled>점검 시작</button>
+          </div>
+        </div>
+
+        <div id="step-inspect" style="display:none;">
+          <div class="inspect-header">
+            <div class="inspect-location-row">
+              <div class="inspect-location" id="cur-location"></div>
+              <div class="count-badge" id="total-count"></div>
+            </div>
+            <div class="inspect-meta">
+              <span>점검자: <b id="cur-inspector">-</b></span>
+              <span>최근 점검일: <b id="recent-date">-</b></span>
+            </div>
+          </div>
+
+          <div id="checklist-body"></div>
+
+          <div class="card">
+            <div class="section-title" style="margin-top:0;">점검 기록 비고</div>
+            <textarea class="run-memo-input" id="run-memo" placeholder="장소 전체 특이사항을 입력합니다." oninput="setRunMemo(this.value)"></textarea>
+          </div>
+
+          <div class="save-status" id="save-status"></div>
+          <button class="btn-primary" id="btn-save" onclick="saveResult()">데이터 저장</button>
+          <button class="btn-secondary" style="margin-top:8px;" onclick="backToLocationSelect()">장소 선택으로 돌아가기</button>
+        </div>
+
+        <div id="step-outdoor" style="display:none;">
+          <div class="outdoor-panel">
+            <div class="outdoor-top">
+              <div>
+                <div class="outdoor-title">옥외 시설물 점검</div>
+                <div class="outdoor-sub">K1/K2 지역별 장소 상태를 확인하고 저장합니다.</div>
+              </div>
+            </div>
+            <div id="outdoor-body"><div class="empty">옥외 시설물 점검 데이터를 불러오는 중입니다.</div></div>
+          </div>
+          <div class="card outdoor-memo-card">
+            <div class="section-title" style="margin-top:0;">점검 기록 (비고)</div>
+            <textarea class="run-memo-input" id="outdoor-location-memo" placeholder="선택한 옥외 장소의 특이사항을 입력합니다." oninput="setOutdoorLocationMemo(this.value)"></textarea>
+          </div>
+          <div class="save-status" id="outdoor-save-status"></div>
+          <button class="btn-primary" id="btn-outdoor-save" onclick="saveOutdoorResults()">선택 장소 저장</button>
+          <button class="btn-secondary" style="margin-top:8px;" onclick="backToLocationSelect()">장소 선택으로 돌아가기</button>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           3. 히스토리 화면
+           =================================================================== -->
+      <section class="section" id="sec-history">
+        <div class="history-filter">
+          <select class="filter-select" id="history-filter-loc" onchange="renderHistory()">
+            <option value="">모든 장소</option>
+          </select>
+          <select class="filter-select" id="history-filter-result" onchange="renderHistory()">
+            <option value="">전체 기록</option>
+            <option value="ng">X 포함</option>
+            <option value="memo">특이사항 있음</option>
+          </select>
+          <!-- 2026-06-02 변경: NAS_did 히스토리처럼 기간 필터를 추가합니다. -->
+          <select class="filter-select" id="history-filter-period" onchange="changeHistoryPeriod()">
+            <option value="90" selected>최근 3개월</option>
+            <option value="180">최근 6개월</option>
+            <option value="365">최근 1년</option>
+            <option value="3650">전체</option>
+          </select>
+        </div>
+        <div id="history-list"><div class="empty">히스토리를 불러와 주세요.</div></div>
+      </section>
+
+      <!-- ===================================================================
+           4. 대시보드 화면
+           =================================================================== -->
+      <section class="section" id="sec-dashboard">
+        <!-- 2026-06-02 변경: 기간 필터를 NAS_did 기준 3개에서 4개(이번 달/3개월/6개월/전체)로 변경합니다. -->
+        <div class="period-filter">
+          <button class="period-btn active" onclick="setDashboardPeriod('month', this)">이번 달</button>
+          <button class="period-btn" onclick="setDashboardPeriod('3month', this)">3개월</button>
+          <button class="period-btn" onclick="setDashboardPeriod('6month', this)">6개월</button>
+          <button class="period-btn" onclick="setDashboardPeriod('all', this)">전체</button>
+        </div>
+        <div id="dashboard-body"><div class="empty">대시보드를 불러오는 중입니다.</div></div>
+      </section>
+
+      <!-- ===================================================================
+           5. 메모 검색 화면
+           =================================================================== -->
+      <section class="section" id="sec-memo">
+        <input class="search-input" id="memo-query" placeholder="특이사항 키워드 검색..." oninput="renderMemoRecords()">
+        <div class="search-filter-row">
+          <select class="filter-select" id="memo-filter-loc" onchange="renderMemoRecords()">
+            <option value="">모든 장소</option>
+          </select>
+          <select class="filter-select" id="memo-filter-eq" onchange="renderMemoRecords()">
+            <option value="">모든 장비</option>
+          </select>
+          <select class="filter-select" id="memo-filter-period" onchange="renderMemoRecords()">
+            <option value="90" selected>최근 3개월</option>
+            <option value="180">최근 6개월</option>
+            <option value="365">최근 1년</option>
+            <option value="3650">전체</option>
+          </select>
+        </div>
+        <div id="memo-list"><div class="empty">메모를 불러와 주세요.</div></div>
+      </section>
+
+      <!-- ===================================================================
+           6. 설정 화면
+           =================================================================== -->
+      <section class="section" id="sec-settings">
+        <div class="card">
+          <div class="section-title" style="margin-top:0;">스프레드시트 연결</div>
+          <div class="muted">원본 스프레드시트 ID</div>
+          <div style="margin-top:4px;font-size:12px;word-break:break-all;">1VCDFzlCj0BGWZ-roT086Pj2cOq1q-hsg04-brkh7WvQ</div>
+          <button class="btn-primary" style="margin-top:12px;" onclick="syncChecklist()">원본 체크리스트 확인</button>
+          <div class="save-status" id="settings-status"></div>
+        </div>
+        <div class="card">
+          <div class="section-title" style="margin-top:0;">제외한 기능</div>
+          <div class="muted">계정 권한, 운영 로그, 엑셀 내보내기, NAS DB 동기화는 테스트용 GAS에서 제외했습니다.</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 저장 완료 팝업 -->
+  <div class="modal-overlay" id="save-done-modal">
+    <div class="modal save-done-panel">
+      <div class="save-done-title">저장 완료</div>
+      <div class="save-done-message">스프레드시트에 점검 기록을 저장했습니다.</div>
+      <button class="btn-primary" onclick="afterSaveDone()">확인</button>
+    </div>
+  </div>
+
+  <!-- 상세 팝업 -->
+  <div class="modal-overlay" id="detail-modal" onclick="closeDetailModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <!-- 2026-06-02 변경: 히스토리 상세 모달 헤더를 NAS_did 기준처럼 제목 + X 닫기 버튼으로 변경합니다. -->
+      <div class="modal-header">
+        <div class="modal-title" id="detail-title"></div>
+        <button class="modal-close" onclick="closeDetailModalDirect()">✕</button>
+      </div>
+      <div class="modal-meta" id="detail-meta"></div>
+      <div id="detail-body"></div>
+    </div>
+  </div>
+
+  <script>
+    // ========================================================================
+    // 1. 전역 상태와 서버 설정
+    // ========================================================================
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbx1aETwl0wnZGRIZ0KGKIDtaWdCTVAQ0bW1Sdf3LZbBqWWBqwjEMnTIB8WsWB3fhWmg/exec';
+
+    let appData = { groups: [], locations: [] };
+    let currentLocation = '';
+    let currentItems = [];
+    let checkResults = [];
+    let runMemo = '';
+    let historyCache = null;
+    let currentHistoryView = [];
+    let memoCache = null;
+    let lastInspectionDates = {};
+    let dashPeriod = 'month';
+    let dashData = null;
+    let ngOpen = false;
+    let memoOpen = false;
+    let complianceGroupFilter = '전체';
+    let complianceStatusFilter = '전체';
+    let outdoorData = null;
+    let outdoorResults = {};
+    let outdoorLocationMemos = {};
+    let outdoorSelectedLocation = '';
+    let outdoorGroupFilter = 'K1';
+    // 2026-06-04 변경: 옥외 시설물은 별도 탭이 아니라 장소 선택 목록 맨 아래의 내부 진입값으로 처리합니다.
+    // 변경 전: 옥외 탭 1개를 새로 만들었습니다. 변경 후: 점검 장소 목록 아래 버튼으로 진입합니다.
+    const OUTDOOR_ENTRY_LOCATION = '__OUTDOOR_INSPECTION__';
+    const OUTDOOR_LOCATION_GROUP_OVERRIDES = {
+      'SR3동': 'K2',
+      '정문동': 'K1',
+      'SR1동 식당': 'K1',
+      'SR3동 식당': 'K2',
+      '6-1라인 스피커': 'K2',
+    };
+    // 2026-06-08 신규: 상세측정 항목명이 비어 있거나 잘 보이지 않을 때 입력 순서 기준 기본 라벨을 사용합니다.
+    const CA_DETAIL_DEFAULT_LABELS = ['RF power', 'SNR', 'EVM', 'MER'];
+
+    document.addEventListener('DOMContentLoaded', initApp);
+
+    async function initApp() {
+      const loading = document.getElementById('app-loading');
+      try {
+        loadInspectorName();
+        await loadInit();
+        if (loading) {
+          // 2026-06-08 신규: 초기 데이터 로딩 성공 후 0.3초 페이드아웃으로 로딩 화면을 닫습니다.
+          loading.style.opacity = '0';
+          setTimeout(() => {
+            loading.style.display = 'none';
+          }, 300);
+        }
+      } catch (err) {
+        console.error(err);
+        const message = document.querySelector('.loading-msg');
+        if (message) {
+          message.innerHTML = `시스템 정보를 불러오지 못했습니다.<br>${escapeHtml(err.message || '잠시 후 다시 시도해 주세요.')}<br><button class="btn-secondary" style="width:auto;min-height:40px;margin-top:16px;padding:0 16px;" onclick="location.reload()">다시 시도</button>`;
+        }
+      }
+    }
+
+    async function requestJson(params, options = {}) {
+      const url = `${GAS_URL}?${new URLSearchParams(params).toString()}`;
+      const response = await fetch(url, options);
+      const data = await response.json();
+      if (data.status && data.status !== 'ok') throw new Error(data.message || '요청 실패');
+      return data;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[ch]));
+    }
+
+    function todayDateKey() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
+
+    // ========================================================================
+    // 2. 장소 선택
+    // ========================================================================
+    async function loadInit() {
+      const listEl = document.getElementById('location-list');
+      try {
+        appData = await requestJson({ action: 'init', t: Date.now() });
+        lastInspectionDates = appData.lastDates || {};
+        renderLocationList();
+        renderHistoryFilter();
+      } catch (err) {
+        listEl.innerHTML = `<div class="empty">장소를 불러오지 못했습니다.<br>${escapeHtml(err.message)}</div>`;
+        // 2026-06-08 신규: 초기 로딩 실패를 initApp까지 전달해 로딩 화면에서 재시도 버튼을 보여줍니다.
+        throw err;
+      }
+    }
+
+    function renderLocationList() {
+      const listEl = document.getElementById('location-list');
+      // 2026-06-08 변경: 장소목록에서 넘어온 일반 옥외 시설물 점검 버튼은 공백 차이와 상관없이 숨깁니다.
+      // 변경 전: 장소목록의 옥외 버튼 + 아래쪽 옥외 전용 버튼이 2개 표시됨.
+      // 변경 후: 아래쪽 옥외 전용 버튼만 남깁니다.
+      const groups = (appData.groups || []).filter(item => {
+        const locationKey = String(item.location || '').replace(/\s/g, '');
+        return locationKey !== '옥외시설물점검';
+      });
+      const grouped = {};
+
+      groups.forEach(item => {
+        const group = item.group || '기타';
+        if (!grouped[group]) grouped[group] = [];
+        grouped[group].push(item.location);
+      });
+
+      if (!Object.keys(grouped).length) {
+        listEl.innerHTML = '<div class="empty">장소 목록이 없습니다.</div>';
+        return;
+      }
+
+      let html = '';
+      Object.entries(grouped).forEach(([group, locations]) => {
+        html += `<div class="location-group">
+          <div class="location-group-title">${escapeHtml(group)}</div>
+          <div class="location-grid">`;
+        locations.forEach(location => {
+          html += `<button class="location-btn" data-location="${escapeHtml(location)}" onclick="selectLocation('${encodeURIComponent(location)}')">${escapeHtml(location)}</button>`;
+        });
+        html += '</div></div>';
+      });
+      html += `<div class="location-group">
+        <div class="location-group-title">옥외 시설물 점검</div>
+        <div class="location-grid">
+          <button class="location-btn" data-location="${OUTDOOR_ENTRY_LOCATION}" onclick="selectLocation('${encodeURIComponent(OUTDOOR_ENTRY_LOCATION)}')">옥외 시설물 점검</button>
+        </div>
+      </div>`;
+      listEl.innerHTML = html;
+    }
+
+    function selectLocation(encodedLocation) {
+      currentLocation = decodeURIComponent(encodedLocation);
+      document.querySelectorAll('.location-btn').forEach(button => {
+        button.classList.toggle('selected', button.dataset.location === currentLocation);
+      });
+      updateStartButton();
+    }
+
+    function updateStartButton() {
+      const inspector = document.getElementById('inspector-name').value.trim();
+      document.getElementById('btn-start').disabled = !inspector || !currentLocation;
+    }
+
+    function loadInspectorName() {
+      const value = localStorage.getItem('ca_check_inspector') || '';
+      document.getElementById('inspector-name').value = value;
+    }
+
+    function saveInspectorName() {
+      localStorage.setItem('ca_check_inspector', document.getElementById('inspector-name').value.trim());
+    }
+
+    async function startInspection() {
+      const inspector = document.getElementById('inspector-name').value.trim();
+      if (!inspector) return alert('점검자를 입력해 주세요.');
+      if (!currentLocation) return alert('장소를 선택해 주세요.');
+
+      saveInspectorName();
+      document.getElementById('btn-start').disabled = true;
+
+      if (currentLocation === OUTDOOR_ENTRY_LOCATION) {
+        document.getElementById('step-select').style.display = 'none';
+        document.getElementById('step-inspect').style.display = 'none';
+        document.getElementById('step-outdoor').style.display = 'block';
+        await loadOutdoorData();
+        updateStartButton();
+        return;
+      }
+
+      try {
+        const data = await requestJson({ action: 'checklist', location: currentLocation, t: Date.now() });
+        currentItems = data.items || [];
+        checkResults = currentItems.map(item => ({
+          result: isMeasurementOnlyItem(item) ? null : 'ok',
+          measurementValue: '',
+          memo: ''
+        }));
+        runMemo = '';
+        document.getElementById('run-memo').value = '';
+        document.getElementById('step-select').style.display = 'none';
+        document.getElementById('step-inspect').style.display = 'block';
+        document.getElementById('cur-location').textContent = currentLocation;
+        document.getElementById('cur-inspector').textContent = inspector;
+        document.getElementById('total-count').textContent = `${currentItems.length}개`;
+        document.getElementById('recent-date').textContent = getRecentDateForLocation(currentLocation);
+        renderChecklist();
+      } catch (err) {
+        alert(err.message || '체크리스트를 불러오지 못했습니다.');
+      } finally {
+        updateStartButton();
+      }
+    }
+
+    function backToLocationSelect() {
+      document.getElementById('step-inspect').style.display = 'none';
+      document.getElementById('step-outdoor').style.display = 'none';
+      document.getElementById('step-select').style.display = 'block';
+      document.getElementById('save-status').textContent = '';
+      const outdoorStatus = document.getElementById('outdoor-save-status');
+      if (outdoorStatus) outdoorStatus.textContent = '';
+    }
+
+    // ========================================================================
+    // 3. 체크리스트 렌더링
+    // ========================================================================
+    function renderChecklist() {
+      const grouped = {};
+      currentItems.forEach((item, idx) => {
+        const system = item.system || '시스템 미분류';
+        if (!grouped[system]) grouped[system] = [];
+        grouped[system].push({ ...item, idx });
+      });
+
+      let html = '';
+      let groupIndex = 0;
+
+      Object.entries(grouped).forEach(([systemName, items]) => {
+        const collapsed = groupIndex > 0 ? ' collapsed' : '';
+        html += `<div class="equipment-group${collapsed}">
+          <div class="equipment-name" onclick="toggleAccordion(this)">${escapeHtml(systemName)}</div>
+          <div class="eq-items-container">`;
+
+        if (items.some(item => isCaDetailMeasurementItem(item))) {
+          html += renderCaDetailGroup(items);
+        } else {
+          items.forEach(item => {
+            html += renderNormalItem(item);
+          });
+        }
+
+        html += '</div></div>';
+        groupIndex += 1;
+      });
+
+      document.getElementById('checklist-body').innerHTML = html || '<div class="empty">점검 항목이 없습니다.</div>';
+    }
+
+    function renderNormalItem(item) {
+      const idx = item.idx;
+      const result = checkResults[idx]?.result;
+      const measurementOnly = isMeasurementOnlyItem(item);
+      const okBtn = measurementOnly ? '' : `<button class="check-btn ok ${result === 'ok' ? 'ok-active' : ''}" id="ok-${idx}" onclick="setResult(${idx}, 'ok')">O</button>`;
+      const checkItemName = getItemCheckName(item);
+      const methodText = getItemMethodText(item);
+      // 2026-06-08 변경: Optical ONU 입력란의 0000 -> 00.00 안내 문구를 제거합니다.
+      // 변경 전: 입력란 오른쪽에 변환 안내 표시. 변경 후: placeholder 00.00만 표시합니다.
+      const measureHtml = measurementOnly ? `
+        <div class="measure-row">
+          <div class="measure-wrap">
+            <input class="measure-input" id="measurement-${idx}" inputmode="numeric" pattern="[0-9]*"
+              placeholder="${isCaOnuMeasurementItem(item) ? '00.00' : '00.0'}"
+              oninput="setMeasurement(${idx}, this.value)">
+          </div>
+        </div>` : '';
+
+      return `<div class="check-item" id="item-${idx}">
+        <div class="check-item-top">
+          <div>
+            <div class="check-title">[${escapeHtml(item.equipment || '-')}] ${escapeHtml(checkItemName)}</div>
+            <!-- 2026-06-02 변경: 점검방법 뒤에 기준값을 붙이지 않습니다. 변경 전: 점검방법 + 기준값 표시. -->
+            <div class="check-desc">${escapeHtml(methodText)}</div>
+          </div>
+          <div class="check-btns">
+            ${okBtn}
+            <button class="check-btn ng ${result === 'ng' ? 'ng-active' : ''}" id="ng-${idx}" onclick="setResult(${idx}, 'ng')">X</button>
+          </div>
+        </div>
+        ${measureHtml}
+        <textarea class="memo-input" placeholder="특이사항을 입력해 주세요." oninput="setMemo(${idx}, this.value)"></textarea>
+      </div>`;
+    }
+
+    function renderCaDetailGroup(items) {
+      const locationItems = items.filter(item => isCaDetailLocationItem(item));
+      const measureItems = items.filter(item => !isCaDetailLocationItem(item));
+      // 2026-06-08 변경: 상세측정 카드를 장비명 문자열이 아니라 원본 시트의 측정 묶음 키로 구분합니다.
+      // 변경 전: 같은 장비명인 FSK-TX 상향/하향이 한 카드로 합쳐질 수 있었습니다.
+      // 변경 후: detailGroupKey별로 분리하고 채널명/주파수/서비스명 3개를 카드 타이틀에 표시합니다.
+      const byDetailGroup = {};
+      let html = '';
+
+      locationItems.forEach(item => {
+        const idx = item.idx;
+        html += `<div class="ca-detail-location-field" id="item-${idx}">
+          <div class="ca-detail-location-label">측정 위치</div>
+          <textarea class="memo-input ca-detail-location-input" placeholder="측정 위치를 입력해 주세요."
+            oninput="setDetailLocation(${idx}, this.value)"></textarea>
+        </div>`;
+      });
+
+      measureItems.forEach(item => {
+        const detailTitle = getCaDetailCardTitle(item);
+        const groupKey = item.detailGroupKey || detailTitle;
+        if (!byDetailGroup[groupKey]) {
+          byDetailGroup[groupKey] = {
+            title: detailTitle,
+            items: []
+          };
+        }
+        byDetailGroup[groupKey].items.push(item);
+      });
+
+      Object.values(byDetailGroup).forEach(detailGroup => {
+        const detailItems = detailGroup.items;
+        const firstIdx = detailItems[0].idx;
+        html += `<div class="ca-detail-card" id="ca-detail-card-${firstIdx}">
+          <div class="ca-detail-card-head">
+            <div class="ca-detail-title">${escapeHtml(detailGroup.title)}</div>
+            <button class="ca-detail-ng-btn" id="ca-detail-ng-${firstIdx}"
+              onclick="toggleCaDetailNg(${firstIdx}, '${detailItems.map(item => item.idx).join(',')}')">X</button>
+          </div>
+          <div class="ca-detail-grid">`;
+        detailItems.forEach((item, detailIdx) => {
+          const idx = item.idx;
+          const checkItemName = getCaDetailMeasureLabel(item, detailIdx);
+          html += `<div class="ca-detail-measure-item">
+            <div class="ca-detail-measure-wrap">
+              <span class="ca-detail-measure-prefix">${escapeHtml(checkItemName)}</span>
+              <input class="ca-detail-measure-input" id="measurement-${idx}" inputmode="numeric" pattern="[0-9]*"
+                placeholder="00.0" oninput="setCaDetailMeasurement(${idx}, this.value)">
+            </div>
+          </div>`;
+        });
+        html += `</div>
+          <textarea class="memo-input" placeholder="특이사항을 입력해 주세요." oninput="setMemo(${firstIdx}, this.value)"></textarea>
+        </div>`;
+      });
+
+      return html;
+    }
+
+    function toggleAccordion(header) {
+      header.closest('.equipment-group').classList.toggle('collapsed');
+    }
+
+    function isCaDetailMeasurementItem(item) {
+      return String(item.system || '').includes('상세측정');
+    }
+
+    function isCaDetailLocationItem(item) {
+      // 2026-06-02 변경: "측정 위치"만 찾던 조건을 "측정위치"처럼 공백 없는 표기도 인식하게 바꿉니다.
+      const text = [getItemCheckName(item), getItemMethodText(item), item.standard, item.equipment].join(' ');
+      return isCaDetailMeasurementItem(item) && /측정\s*위치/.test(text);
+    }
+
+    function isCaOnuMeasurementItem(item) {
+      return String(item.system || '').includes('Optical') && String(item.equipment || '').includes('ONU');
+    }
+
+    function isMeasurementOnlyItem(item) {
+      return isCaOnuMeasurementItem(item) || isCaDetailMeasurementItem(item);
+    }
+
+    function getCaDetailCardTitle(item) {
+      // 2026-06-08 신규: 서버가 분리해 준 채널명/주파수/서비스명을 빠짐없이 상세측정 카드 타이틀로 조합합니다.
+      const channelParts = [
+        item.detailChannel,
+        item.detailFrequency,
+        item.detailChannelName
+      ].map(value => String(value || '').trim()).filter(Boolean);
+      return channelParts.join(' · ') || item.detailTitle || item.equipment || '장비';
+    }
+
+    function getCaDetailMeasureLabel(item, detailIndex) {
+      // 2026-06-08 신규: 상세측정 라벨을 RF power/SNR/EVM/MER 순서로 보강합니다.
+      // 변경 전: 원본 항목명이 비어 있거나 작게 잘리면 입력 위치를 알기 어려움. 변경 후: 기본 라벨을 항상 표시합니다.
+      const name = getItemCheckName(item).trim();
+      const defaultLabel = CA_DETAIL_DEFAULT_LABELS[detailIndex % CA_DETAIL_DEFAULT_LABELS.length];
+      return /rf|power|snr|evm|mer/i.test(name) ? name : defaultLabel || name;
+    }
+
+    function getItemCheckName(item) {
+      return item.checkItem || item.item || '';
+    }
+
+    function getItemMethodText(item) {
+      return item.method || item.checkMethod || item.desc || '';
+    }
+
+    // ========================================================================
+    // 4. 입력값 저장 상태
+    // ========================================================================
+    function setResult(idx, result) {
+      // 2026-06-08 변경: 같은 O/X 버튼을 한 번 더 누르면 선택 해제 상태가 되도록 바꿉니다.
+      // 변경 전: X 재터치 시 O로 복귀, O 재터치 시 유지. 변경 후: O/X 모두 재터치 시 빈값으로 저장됩니다.
+      checkResults[idx].result = checkResults[idx].result === result ? '' : result;
+      const item = document.getElementById(`item-${idx}`);
+      if (item) item.classList.toggle('result-ng', checkResults[idx].result === 'ng');
+      const okButton = document.getElementById(`ok-${idx}`);
+      const ngButton = document.getElementById(`ng-${idx}`);
+      if (okButton) okButton.classList.toggle('ok-active', checkResults[idx].result === 'ok');
+      if (ngButton) ngButton.classList.toggle('ng-active', checkResults[idx].result === 'ng');
+    }
+
+    function setMeasurement(idx, value) {
+      const formatted = formatFixedDecimalDigits(value, 4, 2);
+      checkResults[idx].measurementValue = formatted;
+      checkResults[idx].result = formatted ? 'measurement' : null;
+      const input = document.getElementById(`measurement-${idx}`);
+      if (input && input.value !== formatted) input.value = formatted;
+    }
+
+    function setCaDetailMeasurement(idx, value) {
+      const formatted = formatFixedDecimalDigits(value, 3, 1);
+      checkResults[idx].measurementValue = formatted;
+      checkResults[idx].result = formatted ? 'measurement' : null;
+      const input = document.getElementById(`measurement-${idx}`);
+      if (input && input.value !== formatted) input.value = formatted;
+    }
+
+    function setDetailLocation(idx, value) {
+      checkResults[idx].measurementValue = value;
+      checkResults[idx].result = value.trim() ? 'measurement' : null;
+    }
+
+    function setMemo(idx, value) {
+      checkResults[idx].memo = value;
+    }
+
+    function setRunMemo(value) {
+      runMemo = value;
+    }
+
+    function toggleCaDetailNg(firstIdx, csvIndexes) {
+      const indexes = csvIndexes.split(',').map(value => Number(value)).filter(value => !Number.isNaN(value));
+      const hasNg = indexes.some(idx => checkResults[idx]?.result === 'ng');
+      indexes.forEach(idx => {
+        checkResults[idx].result = hasNg ? (checkResults[idx].measurementValue ? 'measurement' : null) : 'ng';
+      });
+      const button = document.getElementById(`ca-detail-ng-${firstIdx}`);
+      const card = document.getElementById(`ca-detail-card-${firstIdx}`);
+      if (button) button.classList.toggle('ng-active', !hasNg);
+      if (card) card.classList.toggle('result-ng', !hasNg);
+    }
+
+    function formatFixedDecimalDigits(value, maxDigits, decimalPlaces) {
+      const digits = String(value || '').replace(/\D/g, '').slice(0, maxDigits);
+      if (!digits) return '';
+      // 2026-06-02 변경: 입력 중 0을 앞에 채우지 않습니다. 변경 전: 1 입력 시 00.01처럼 즉시 변환.
+      if (digits.length <= decimalPlaces) return digits;
+      const head = digits.slice(0, digits.length - decimalPlaces);
+      const tail = digits.slice(digits.length - decimalPlaces);
+      return `${head}.${tail}`;
+    }
+
+    // ========================================================================
+    // 5. 저장
+    // ========================================================================
+    async function saveResult() {
+      const inspector = document.getElementById('inspector-name').value.trim();
+      const statusEl = document.getElementById('save-status');
+      const button = document.getElementById('btn-save');
+
+      if (!inspector) return alert('점검자를 입력해 주세요.');
+      if (!currentLocation) return alert('장소가 선택되지 않았습니다.');
+
+      const payload = {
+        clientRecordId: `CA-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        date: todayDateKey(),
+        location: currentLocation,
+        inspector,
+        recordMemo: runMemo,
+        runMemo,
+        items: currentItems.map((item, idx) => {
+          const state = checkResults[idx] || {};
+          const checkItemName = getItemCheckName(item);
+          const methodText = getItemMethodText(item);
+          return {
+            sourceRow: item.sourceRow || 0,
+            sourceSheet: item.sourceSheet || '',
+            system: item.system || '',
+            equipment: item.equipment || '',
+            qty: item.qty || item.quantity || '',
+            quantity: item.qty || item.quantity || '',
+            checkItem: checkItemName,
+            item: checkItemName,
+            checkMethod: methodText,
+            method: methodText,
+            desc: methodText,
+            standard: item.standard || item.criteria || '',
+            result: state.result || '',
+            measurementValue: state.measurementValue || '',
+            memo: state.memo || ''
+          };
+        })
+      };
+
+      try {
+        button.disabled = true;
+        statusEl.textContent = '저장 중입니다.';
+        statusEl.className = 'save-status saving';
+        const response = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload),
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+        });
+        const data = await response.json();
+        if (data.status && data.status !== 'ok') throw new Error(data.message || '저장 실패');
+        historyCache = null;
+        memoCache = null;
+        document.getElementById('save-done-modal').classList.add('open');
+      } catch (err) {
+        statusEl.textContent = err.message || '저장에 실패했습니다.';
+        statusEl.className = 'save-status error';
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    function afterSaveDone() {
+      document.getElementById('save-done-modal').classList.remove('open');
+      backToLocationSelect();
+    }
+
+    // ========================================================================
+    // 6. 옥외 시설물 원본형 표
+    // ========================================================================
+    async function loadOutdoorData() {
+      const body = document.getElementById('outdoor-body');
+      if (!body) return;
+      body.innerHTML = '<div class="empty">옥외 시설물 점검 데이터를 불러오는 중입니다.</div>';
+
+      try {
+        outdoorData = await requestJson({ action: 'outdoor', t: Date.now() });
+        outdoorResults = JSON.parse(JSON.stringify(outdoorData.results || {}));
+        outdoorLocationMemos = normalizeOutdoorLocationMemos(outdoorData.locationMemos || {});
+        const visibleLocations = getVisibleOutdoorLocations();
+        outdoorSelectedLocation = visibleLocations[0]?.name || outdoorData.locations?.[0]?.name || '';
+        renderOutdoor();
+      } catch (err) {
+        body.innerHTML = `<div class="empty">옥외 시설물 데이터를 불러오지 못했습니다.<br>${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function normalizeOutdoorLocationMemos(locationMemos) {
+      // 2026-06-08 신규: GAS의 장소별 비고 객체를 화면에서 바로 쓰기 쉬운 문자열 맵으로 정리합니다.
+      // 변경 전: 옥외 비고를 화면 상태로 보관하지 않음. 변경 후: {장소명: 비고} 형태로 보관합니다.
+      const memos = {};
+      Object.entries(locationMemos || {}).forEach(([locationName, memoValue]) => {
+        memos[locationName] = typeof memoValue === 'string' ? memoValue : String(memoValue?.memo || '');
+      });
+      return memos;
+    }
+
+    function getOutdoorResult(sourceRow, locationName) {
+      const rowKey = String(sourceRow);
+      return String(outdoorResults[rowKey]?.[locationName] || '');
+    }
+
+    function setOutdoorResult(sourceRow, locationName, result) {
+      const rowKey = String(sourceRow);
+      if (!outdoorResults[rowKey]) outdoorResults[rowKey] = {};
+      outdoorResults[rowKey][locationName] = getOutdoorResult(sourceRow, locationName) === result ? '' : result;
+      renderOutdoor();
+    }
+
+    function getOutdoorItemResult(locationName, sourceRow) {
+      return getOutdoorResult(sourceRow, locationName);
+    }
+
+    function getOutdoorSummary(locationName) {
+      const values = (outdoorData?.items || []).map(item => getOutdoorItemResult(locationName, item.sourceRow));
+      const okCount = values.filter(value => value === 'ok').length;
+      const ngCount = values.filter(value => value === 'ng').length;
+      const checkedCount = okCount + ngCount;
+      // 2026-06-04 변경: 옥외 장소 카드는 정상률이 아니라 불량률을 보여줍니다. 계산 기준은 X / (○ + X)입니다.
+      const defectRate = checkedCount ? Math.round((ngCount / checkedCount) * 1000) / 10 : null;
+      return { okCount, ngCount, checkedCount, defectRate };
+    }
+
+    function getOutdoorLocationGroup(locationName) {
+      if (OUTDOOR_LOCATION_GROUP_OVERRIDES[locationName]) return OUTDOOR_LOCATION_GROUP_OVERRIDES[locationName];
+      const matched = (appData.groups || []).find(item => item.location === locationName);
+      if (matched && (matched.group === 'K1' || matched.group === 'K2')) return matched.group;
+      if (String(locationName || '').includes('SR3') || String(locationName || '').includes('6-1')) return 'K2';
+      return 'K1';
+    }
+
+    function getVisibleOutdoorLocations() {
+      const locations = outdoorData?.locations || [];
+      return locations.filter(location => getOutdoorLocationGroup(location.name) === outdoorGroupFilter);
+    }
+
+    function setOutdoorGroupFilter(groupName) {
+      outdoorGroupFilter = groupName;
+      outdoorSelectedLocation = '';
+      renderOutdoor();
+    }
+
+    function setOutdoorLocation(locationName) {
+      outdoorSelectedLocation = locationName;
+      renderOutdoor();
+    }
+
+    function getOutdoorLocationMemo(locationName) {
+      return String(outdoorLocationMemos[locationName] || '');
+    }
+
+    function setOutdoorLocationMemo(value) {
+      // 2026-06-08 신규: 옥외 비고를 선택한 장소별로 따로 저장합니다.
+      // 변경 전: 비고 입력란 없음. 변경 후: 장소를 바꿔도 각 장소 비고가 섞이지 않습니다.
+      if (!outdoorSelectedLocation) return;
+      outdoorLocationMemos[outdoorSelectedLocation] = value;
+    }
+
+    function syncOutdoorLocationMemoInput() {
+      const input = document.getElementById('outdoor-location-memo');
+      if (!input) return;
+      const memo = outdoorSelectedLocation ? getOutdoorLocationMemo(outdoorSelectedLocation) : '';
+      if (input.value !== memo) input.value = memo;
+    }
+
+    function renderOutdoorGroupFilter() {
+      const groups = ['K1', 'K2'];
+      return `<div class="outdoor-group-filter">` + groups.map(group => {
+        const count = (outdoorData?.locations || []).filter(location => getOutdoorLocationGroup(location.name) === group).length;
+        return `<button class="outdoor-group-btn${outdoorGroupFilter === group ? ' active' : ''}" type="button" onclick="setOutdoorGroupFilter('${group}')">${group} <span style="font-size:11px;color:var(--text3);">${count}</span></button>`;
+      }).join('') + `</div>`;
+    }
+
+    function renderOutdoorCompleteTag(summary) {
+      const completed = summary.checkedCount > 0;
+      return `<span class="outdoor-complete-tag${completed ? '' : ' is-empty'}">${completed ? '점검완료' : '미점검'}</span>`;
+    }
+
+    function renderOutdoorDefectRate(summary) {
+      if (summary.defectRate === null || summary.defectRate === undefined) return `<span class="outdoor-defect-rate is-empty-rate">불량 -</span>`;
+      return `<span class="outdoor-defect-rate${summary.ngCount > 0 ? ' ng' : ''}">불량 ${summary.defectRate}%</span>`;
+    }
+
+    function renderOutdoor() {
+      const body = document.getElementById('outdoor-body');
+      if (!body || !outdoorData) return;
+
+      const locations = outdoorData.locations || [];
+      const items = outdoorData.items || [];
+      if (!locations.length || !items.length) {
+        body.innerHTML = '<div class="empty">옥외 시설물 원본 표 데이터가 없습니다.</div>';
+        return;
+      }
+      const visibleLocations = getVisibleOutdoorLocations();
+      if (!visibleLocations.length) {
+        body.innerHTML = renderOutdoorGroupFilter() + '<div class="empty">선택한 지역의 옥외 장소가 없습니다.</div>';
+        return;
+      }
+      if (!outdoorSelectedLocation || !visibleLocations.some(location => location.name === outdoorSelectedLocation)) {
+        outdoorSelectedLocation = visibleLocations[0].name;
+      }
+
+      let html = renderOutdoorGroupFilter() + '<div class="outdoor-location-list">';
+      visibleLocations.forEach(location => {
+        const summary = getOutdoorSummary(location.name);
+        const active = outdoorSelectedLocation === location.name;
+        html += `<button class="outdoor-location-card${active ? ' active' : ''}" type="button" onclick="setOutdoorLocation(decodeURIComponent('${encodeURIComponent(location.name)}'))">
+          <div class="outdoor-location-head">
+            <div class="outdoor-location-name">${escapeHtml(location.name)}</div>
+            <div class="outdoor-location-bottom">
+              ${renderOutdoorCompleteTag(summary)}
+              ${renderOutdoorDefectRate(summary)}
+            </div>
+          </div>
+        </button>`;
+      });
+      html += '</div>';
+
+      const selectedSummary = getOutdoorSummary(outdoorSelectedLocation);
+      html += `<div class="outdoor-check-card">
+        <div class="outdoor-check-title">
+          <div>
+            <div class="outdoor-check-location">${escapeHtml(outdoorSelectedLocation)}</div>
+            <div class="outdoor-sub">○ ${selectedSummary.okCount} · X ${selectedSummary.ngCount}</div>
+          </div>
+          ${renderOutdoorDefectRate(selectedSummary)}
+        </div>
+        <div class="outdoor-check-grid">`;
+
+      items.forEach(item => {
+        const current = getOutdoorItemResult(outdoorSelectedLocation, item.sourceRow);
+        html += `<div class="outdoor-check-item">
+          <div class="outdoor-check-row">
+            <div>
+              <div class="outdoor-check-name">[${escapeHtml(item.category || '-')}] ${escapeHtml(item.equipment || '-')} · ${escapeHtml(item.checkItem || '-')}</div>
+              <div class="outdoor-check-desc">${escapeHtml(item.checkMethod || '')}</div>
+            </div>
+            <div class="outdoor-result-buttons">
+              <button class="outdoor-result-btn ok ${current === 'ok' ? 'active' : ''}" type="button" onclick="setOutdoorResult(${Number(item.sourceRow || 0)}, decodeURIComponent('${encodeURIComponent(outdoorSelectedLocation)}'), 'ok')">○</button>
+              <button class="outdoor-result-btn ng ${current === 'ng' ? 'active' : ''}" type="button" onclick="setOutdoorResult(${Number(item.sourceRow || 0)}, decodeURIComponent('${encodeURIComponent(outdoorSelectedLocation)}'), 'ng')">X</button>
+            </div>
+          </div>
+        </div>`;
+      });
+
+      html += '</div></div>';
+      body.innerHTML = html;
+      syncOutdoorLocationMemoInput();
+    }
+
+    async function saveOutdoorResults() {
+      const inspector = document.getElementById('inspector-name').value.trim();
+      const statusEl = document.getElementById('outdoor-save-status');
+      const button = document.getElementById('btn-outdoor-save');
+
+      if (!inspector) return alert('점검자를 입력해 주세요.');
+      if (!outdoorData) await loadOutdoorData();
+      if (!outdoorData) return;
+      if (!outdoorSelectedLocation) return alert('저장할 옥외 장소를 선택해 주세요.');
+
+      saveInspectorName();
+
+      const payloadItems = [];
+      (outdoorData.items || []).forEach(item => {
+        // 2026-06-08 변경: 옥외 저장 대상을 전체 장소에서 현재 선택 장소 1곳으로 제한합니다.
+        // 변경 전: 모든 장소 결과를 한 번에 전송. 변경 후: 선택 장소의 점검일/점검자/비고만 갱신합니다.
+        payloadItems.push({
+          sourceRow: item.sourceRow,
+          locationName: outdoorSelectedLocation,
+          result: getOutdoorResult(item.sourceRow, outdoorSelectedLocation)
+        });
+      });
+
+      try {
+        button.disabled = true;
+        statusEl.textContent = `${outdoorSelectedLocation} 점검 결과를 저장 중입니다.`;
+        statusEl.className = 'save-status saving';
+        const response = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'outdoorSave',
+            date: todayDateKey(),
+            inspector,
+            targetLocationName: outdoorSelectedLocation,
+            items: payloadItems,
+            locationMemos: outdoorLocationMemos
+          }),
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+        });
+        const data = await response.json();
+        if (data.status && data.status !== 'ok') throw new Error(data.message || '저장 실패');
+        statusEl.textContent = `${outdoorSelectedLocation} 저장 완료: ${data.savedCount || 0}칸`;
+        statusEl.className = 'save-status';
+        outdoorData = null;
+        await loadOutdoorData();
+      } catch (err) {
+        statusEl.textContent = err.message || '저장에 실패했습니다.';
+        statusEl.className = 'save-status error';
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    // ========================================================================
+    // 7. 히스토리
+    // ========================================================================
+    function renderHistoryFilter() {
+      const select = document.getElementById('history-filter-loc');
+      select.innerHTML = '<option value="">전체 장소</option>';
+      (appData.locations || []).forEach(location => {
+        select.innerHTML += `<option value="${escapeHtml(location)}">${escapeHtml(location)}</option>`;
+      });
+      renderMemoFilters();
+    }
+
+    function getHistoryDays() {
+      const select = document.getElementById('history-filter-period');
+      return Number((select && select.value) || 90);
+    }
+
+    function changeHistoryPeriod() {
+      historyCache = null;
+      renderHistory();
+    }
+
+    async function loadHistory() {
+      const days = getHistoryDays();
+      if (historyCache && historyCache.days === days) return historyCache.records;
+      const data = await requestJson({ action: 'history', days, t: Date.now() });
+      historyCache = { days, records: data.records || [] };
+      return historyCache.records;
+    }
+
+    async function loadAllHistoryRecords(days = 3650) {
+      const data = await requestJson({ action: 'history', days, t: Date.now() });
+      return data.records || [];
+    }
+
+    function countMeasurementItems(items) {
+      return (items || []).filter(item => item.result === 'measurement' || String(item.measurementValue || '').trim()).length;
+    }
+
+    function renderStatBadge(className, label, count) {
+      return `<span class="stat-badge ${className}">${label} ${count}</span>`;
+    }
+
+    async function refreshHistory() {
+      historyCache = null;
+      await renderHistory();
+    }
+
+    async function renderHistory() {
+      const container = document.getElementById('history-list');
+      container.innerHTML = '<div class="empty">히스토리를 불러오는 중입니다.</div>';
+      try {
+        let records = await loadHistory();
+        const loc = document.getElementById('history-filter-loc').value;
+        const result = document.getElementById('history-filter-result').value;
+        if (loc) records = records.filter(record => record.location === loc);
+        if (result === 'ng') records = records.filter(record => record.items.some(item => item.result === 'ng'));
+        if (result === 'memo') records = records.filter(record => hasCountableMemo(record.runMemo) || record.items.some(item => hasCountableMemo(item.memo)));
+        if (!records.length) {
+          container.innerHTML = '<div class="empty">표시할 히스토리가 없습니다.</div>';
+          currentHistoryView = [];
+          return;
+        }
+        currentHistoryView = records;
+        container.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div style="font-size:12px;color:var(--text3);">총 ${records.length}건</div>
+            <button class="btn-secondary" style="width:auto;min-height:0;font-size:11px;padding:5px 10px;border-radius:var(--radius-sm);" onclick="refreshHistory()">새로고침</button>
+          </div>` + records.map((record, idx) => {
+          const ngCount = record.items.filter(item => item.result === 'ng').length;
+          const memoCount = record.items.filter(item => hasCountableMemo(item.memo)).length + (hasCountableMemo(record.runMemo) ? 1 : 0);
+          const okCount = record.items.filter(item => item.result === 'ok').length;
+          const measurementCount = countMeasurementItems(record.items);
+          return `<div class="history-record" onclick="showDetail(${idx})">
+            <div class="history-record-top">
+              <div class="history-location">${escapeHtml(record.location)}</div>
+              <div class="history-date">${escapeHtml(record.date)}</div>
+            </div>
+            <div class="history-meta">점검자: ${escapeHtml(record.inspector)}</div>
+            <div class="history-stats">
+              ${renderStatBadge('stat-ok', 'O', okCount)}
+              ${renderStatBadge('stat-ng', 'X', ngCount)}
+              ${memoCount ? renderStatBadge('stat-memo', '메모', memoCount) : ''}
+              ${measurementCount ? renderStatBadge('stat-measure', '측정값', measurementCount) : ''}
+            </div>
+            ${hasCountableMemo(record.runMemo) ? `<div class="history-run-memo">${escapeHtml(record.runMemo)}</div>` : ''}
+          </div>`;
+        }).join('');
+      } catch (err) {
+        container.innerHTML = `<div class="empty">히스토리 로드 실패<br>${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function getRecentDateForLocation(location) {
+      if (lastInspectionDates[location]) return lastInspectionDates[location];
+      const records = (historyCache && historyCache.records) || [];
+      const found = records.find(record => record.location === location);
+      return found ? found.date : '기록 없음';
+    }
+
+    function showDetail(index) {
+      const records = currentHistoryView || [];
+      const record = records[index];
+      if (!record) return;
+      showRecordDetail(record);
+    }
+
+    function showRecordDetail(record) {
+      document.getElementById('detail-title').textContent = record.location;
+      document.getElementById('detail-meta').textContent = `${record.date} · 점검자: ${record.inspector}`;
+
+      // 2026-06-02 변경: 상세 모달 내용을 card 나열에서 NAS_did 기준의 modal-item + result-badge 구조로 변경합니다.
+      const runMemoHtml = hasCountableMemo(record.runMemo)
+        ? `<div class="modal-item">
+          <div class="modal-item-text">
+            <div class="modal-item-name">점검 기록 (비고)</div>
+            <div class="modal-item-memo">특이사항: ${escapeHtml(record.runMemo)}</div>
+          </div>
+        </div>`
+        : '';
+
+      const html = runMemoHtml + (record.items || []).map(item => {
+        const measurementText = String(item.measurementValue || '').trim();
+        const result = String(item.result || '').toLowerCase();
+        const isMeasurement = result === 'measurement' || !!measurementText;
+        const showMeasurementInBadge = isMeasurement && measurementText && measurementText.length <= 12;
+        const cls = result === 'ok' ? 'result-ok-badge' : result === 'ng' ? 'result-ng-badge' : 'result-skip-badge';
+        const valueCls = isMeasurement && result !== 'ok' && result !== 'ng' ? ' result-value-badge' : '';
+        const label = result === 'ok' ? '○' : result === 'ng' ? '✕' : showMeasurementInBadge ? measurementText : isMeasurement ? '값' : '-';
+        const checkItemName = item.checkItem || item.item || '';
+        const equipmentName = item.equipment || '-';
+
+        return `<div class="modal-item">
+          <div class="modal-item-text">
+            <div class="modal-item-name">[${escapeHtml(equipmentName)}] ${escapeHtml(checkItemName)}</div>
+            ${isMeasurement && !showMeasurementInBadge ? `<div class="modal-item-memo">값: ${escapeHtml(measurementText)}</div>` : ''}
+            ${hasCountableMemo(item.memo) ? `<div class="modal-item-memo">특이사항: ${escapeHtml(item.memo)}</div>` : ''}
+          </div>
+          <span class="result-badge ${cls}${valueCls}">${escapeHtml(label)}</span>
+        </div>`;
+      }).join('');
+
+      document.getElementById('detail-body').innerHTML = html;
+      document.getElementById('detail-modal').classList.add('open');
+    }
+
+    function closeDetailModal(event) {
+      if (event.target.id === 'detail-modal') closeDetailModalDirect();
+    }
+
+    function closeDetailModalDirect() {
+      document.getElementById('detail-modal').classList.remove('open');
+    }
+
+    // ========================================================================
+    // 7. 대시보드와 메모
+    // ========================================================================
+    async function loadDashboard() {
+      const body = document.getElementById('dashboard-body');
+      body.innerHTML = '<div class="empty">대시보드를 불러오는 중입니다.</div>';
+      try {
+        const data = await requestJson({ action: 'dashboard', period: dashPeriod, t: Date.now() });
+        dashData = data;
+        renderDashboard(data);
+      } catch (err) {
+        body.innerHTML = `<div class="empty">대시보드 로드 실패<br>${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function setDashboardPeriod(period, button) {
+      dashPeriod = period;
+      if (button) {
+        document.querySelectorAll('.period-btn').forEach(item => item.classList.remove('active'));
+        button.classList.add('active');
+      }
+      loadDashboard();
+    }
+
+    function renderDashboard(data) {
+      data = data || dashData || {};
+      let html = '';
+      // 2026-06-02 변경: NAS_did 대시보드 기준처럼 요약 라벨과 좌측 색상 라인을 사용합니다.
+      html += '<div class="dash-sec-label">요약</div>';
+      html += renderDashCard('점검 횟수', '선택 기간 저장 건수', data.inspectCount || 0, 'count-left', '');
+      // 2026-06-02 변경: X 항목 수와 특이사항 수 카드를 클릭하면 목록을 펼치게 합니다. 변경 전: 숫자 카드만 표시.
+      html += renderExpandableDashCard('X 항목 수', ngOpen ? '탭하여 접기' : '탭하여 목록 확인', data.ngCount || 0, 'ng-left', 'ng', 'toggleNg', ngOpen);
+      if (ngOpen) html += renderDashboardItemList(data.ngItems || [], 'X 항목이 없습니다.', false);
+      html += renderExpandableDashCard('특이사항 수', memoOpen ? '탭하여 접기' : '탭하여 목록 확인', data.memoCount || 0, 'warn-left', 'memo', 'toggleMemo', memoOpen);
+      if (memoOpen) html += renderDashboardItemList(data.memoItems || [], '특이사항이 없습니다.', true);
+      html += renderComplianceSection(data);
+      document.getElementById('dashboard-body').innerHTML = html;
+    }
+
+    function renderDashCard(title, subText, value, cardClass, numClass) {
+      return `<div class="dash-card ${cardClass}">
+        <div>
+          <div class="dash-card-title">${escapeHtml(title)}</div>
+          <div class="dash-card-sub">${escapeHtml(subText)}</div>
+        </div>
+        <div class="dash-num ${numClass}">${value}</div>
+      </div>`;
+    }
+
+    function renderExpandableDashCard(title, subText, value, cardClass, numClass, handlerName, isOpen) {
+      return `<div class="dash-card clickable ${cardClass}${isOpen ? ' is-open' : ''}" onclick="${handlerName}()">
+        <div>
+          <div class="dash-card-title">${escapeHtml(title)}</div>
+          <div class="dash-card-sub">${escapeHtml(subText)}</div>
+        </div>
+        <div style="display:flex;align-items:center;">
+          <div class="dash-num ${numClass}">${value}</div>
+          <span class="dash-arrow${isOpen ? ' rotated' : ''}">›</span>
+        </div>
+      </div>`;
+    }
+
+    function renderDashboardItemList(items, emptyText, showMemo) {
+      if (!items.length) return `<div class="dash-empty">${escapeHtml(emptyText)}</div>`;
+      return `<div class="dash-list">${items.map(item => `<div class="dash-list-item">
+        <div class="dash-list-name">[${escapeHtml(item.equipment || '점검 기록')}] ${escapeHtml(item.checkItem || '항목 미지정')}</div>
+        <div class="dash-list-sub">${escapeHtml(item.location || '-')} · ${escapeHtml(item.date || '-')} · ${escapeHtml(item.inspector || '-')}</div>
+        ${showMemo && item.memo ? `<div class="dash-list-memo">${escapeHtml(item.memo)}</div>` : ''}
+      </div>`).join('')}</div>`;
+    }
+
+    function toggleNg() {
+      ngOpen = !ngOpen;
+      renderDashboard();
+    }
+
+    function toggleMemo() {
+      memoOpen = !memoOpen;
+      renderDashboard();
+    }
+
+    function renderComplianceSection(data) {
+      // 2026-06-02 변경: 옥외 시설물 점검은 대시보드 점검 이행 현황에서 제외합니다.
+      const hiddenGroups = new Set(['방송실', '옥외 시설물 점검']);
+      const groups = ['전체', ...(data.complianceGroups || []).filter(group => !hiddenGroups.has(group))];
+      const statuses = ['전체', '이번 달 미점검', '최근 60일 미점검'];
+      const rows = filterComplianceRows(data.complianceRows || []);
+
+      let html = `
+        <div class="dash-divider"></div>
+        <div class="compliance-head">
+          <div class="dash-sec-label" style="margin-bottom:0;">점검 이행 현황</div>
+          <div class="compliance-year">${data.complianceYear || new Date().getFullYear()}년</div>
+        </div>
+        <div class="compliance-filter-block">
+          <div class="compliance-filter-line">
+            <div class="compliance-filter-label">그룹</div>
+            <div class="compliance-filter-row">
+              ${groups.map(group => renderComplianceChip(group, complianceGroupFilter === group, 'setComplianceGroupFilter', getComplianceGroupToneClass(group))).join('')}
+            </div>
+          </div>
+        </div>
+        <div class="compliance-filter-block">
+          <div class="compliance-filter-line">
+            <div class="compliance-filter-label">상태</div>
+            <div class="compliance-filter-row">
+              ${statuses.map(status => renderComplianceChip(status, complianceStatusFilter === status, 'setComplianceStatusFilter', '')).join('')}
+            </div>
+          </div>
+        </div>`;
+
+      if (!rows.length) {
+        return html + '<div class="dash-empty">조건에 맞는 장소가 없습니다.</div>';
+      }
+
+      html += '<div class="compliance-list">';
+      rows.forEach(row => {
+        const months = row.months || {};
+        const latestText = row.latestDate ? `최근 점검일 ${row.latestDate}` : '점검 기록 없음';
+        html += `<div class="compliance-card">
+          <div class="compliance-card-head">
+            <div>
+              <div class="compliance-location">${escapeHtml(row.location || '장소 미지정')}</div>
+              <div class="compliance-latest">${escapeHtml(latestText)}</div>
+            </div>
+            <div class="compliance-group-badge ${getComplianceGroupToneClass(row.group)}">${escapeHtml(row.group || '기타')}</div>
+          </div>
+          <div class="compliance-month-grid">`;
+
+        for (let month = 1; month <= 12; month += 1) {
+          const dates = months[String(month)] || [];
+          const hasRecord = dates.length > 0;
+          const latestDate = getLatestComplianceDate(dates);
+          const clickAction = hasRecord
+            ? ` onclick="openComplianceHistory(decodeURIComponent('${encodeURIComponent(row.location || '')}'), decodeURIComponent('${encodeURIComponent(latestDate)}'))"`
+            : '';
+          html += `<div class="compliance-month${hasRecord ? ' has-record' : ''}" title="${escapeHtml(getComplianceMonthTitle(dates))}"${clickAction}>
+            <div class="compliance-month-num">${month}월</div>
+            <div class="compliance-month-date">${escapeHtml(getComplianceMonthText(dates))}</div>
+          </div>`;
+        }
+
+        html += '</div></div>';
+      });
+      html += '</div>';
+      return html;
+    }
+
+    function renderComplianceChip(label, active, handlerName, toneClass) {
+      const encodedLabel = encodeURIComponent(label);
+      return `<button class="compliance-chip ${active ? 'active' : ''} ${toneClass || ''}" type="button"
+        onclick="${handlerName}(decodeURIComponent('${encodedLabel}'))">${escapeHtml(label)}</button>`;
+    }
+
+    function setComplianceGroupFilter(groupName) {
+      complianceGroupFilter = groupName || '전체';
+      loadDashboard();
+    }
+
+    function setComplianceStatusFilter(statusName) {
+      complianceStatusFilter = statusName || '전체';
+      loadDashboard();
+    }
+
+    function filterComplianceRows(rows) {
+      return (rows || []).filter(row => {
+        const matchGroup = complianceGroupFilter === '전체' || row.group === complianceGroupFilter;
+        const matchStatus = complianceStatusFilter === '전체'
+          || (complianceStatusFilter === '이번 달 미점검' && !row.currentMonthChecked)
+          || (complianceStatusFilter === '최근 60일 미점검' && row.stale60Days);
+        return matchGroup && matchStatus;
+      });
+    }
+
+    function getComplianceGroupToneClass(groupName) {
+      if (groupName === 'K1') return 'compliance-tone-k1';
+      if (groupName === 'K2') return 'compliance-tone-k2';
+      if (groupName === '사외') return 'compliance-tone-offsite';
+      if (groupName === '강당') return 'compliance-tone-hall';
+      if (groupName === '일반 회의실/교육장') return 'compliance-tone-meeting';
+      if (groupName === '화상회의 연동 회의실') return 'compliance-tone-video';
+      return '';
+    }
+
+    function getLatestComplianceDate(dates) {
+      return (dates || []).slice().sort().pop() || '';
+    }
+
+    function getComplianceMonthText(dates) {
+      if (!dates || !dates.length) return '-';
+      const latest = getLatestComplianceDate(dates);
+      const day = Number(String(latest).slice(8, 10));
+      return dates.length > 1 ? `${day}일 외${dates.length - 1}` : `${day}일`;
+    }
+
+    function getComplianceMonthTitle(dates) {
+      if (!dates || !dates.length) return '점검 기록 없음';
+      return dates.join(', ');
+    }
+
+    async function openComplianceHistory(locationName, dateText) {
+      try {
+        const records = await loadAllHistoryRecords(3650);
+        const record = (records || []).find(item => item.location === locationName && item.date === dateText);
+        if (record) showRecordDetail(record);
+      } catch (err) {
+        alert(err.message || '히스토리를 불러오지 못했습니다.');
+      }
+    }
+
+    async function loadMemoRecords() {
+      if (memoCache) return memoCache;
+      const data = await requestJson({ action: 'memoRecords', days: 365, t: Date.now() });
+      memoCache = data.records || [];
+      return memoCache;
+    }
+
+    async function renderMemoRecords() {
+      const list = document.getElementById('memo-list');
+      list.innerHTML = '<div class="empty">메모를 불러오는 중입니다.</div>';
+      try {
+        const query = document.getElementById('memo-query').value.trim().toLowerCase();
+        const loc = document.getElementById('memo-filter-loc').value;
+        const eq = document.getElementById('memo-filter-eq').value;
+        const period = Number(document.getElementById('memo-filter-period').value || 365);
+        let records = await loadMemoRecords();
+        records = filterMemoRecords(records, query, loc, eq, period);
+        if (!records.length) {
+          list.innerHTML = '<div class="empty">표시할 특이사항이 없습니다.</div>';
+          return;
+        }
+        const visibleRecords = records.slice(0, 50);
+        const countText = records.length > visibleRecords.length ? `총 ${records.length}건 중 ${visibleRecords.length}건 표시` : `총 ${records.length}건`;
+        list.innerHTML = `<div style="font-size:12px;color:var(--text3);margin-bottom:12px;">${countText}</div>` +
+          visibleRecords.map(record => `<div class="search-result">
+          <div class="search-result-top">
+            <span class="search-loc">${escapeHtml(record.location)}</span>
+            <span class="search-date">${escapeHtml(record.date)}</span>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">점검자: ${escapeHtml(record.inspector || '-')}</div>
+          <div class="search-item-name">[${escapeHtml(record.equipment || '점검 기록')}] ${escapeHtml(record.checkItem || '비고')}</div>
+          <div class="search-memo">${highlightMemoText(record.memo, query)}</div>
+        </div>`).join('');
+      } catch (err) {
+        list.innerHTML = `<div class="empty">메모 로드 실패<br>${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function renderMemoFilters() {
+      const locSelect = document.getElementById('memo-filter-loc');
+      const eqSelect = document.getElementById('memo-filter-eq');
+      if (!locSelect || !eqSelect) return;
+
+      locSelect.innerHTML = '<option value="">모든 장소</option>';
+      (appData.locations || []).forEach(location => {
+        locSelect.innerHTML += `<option value="${escapeHtml(location)}">${escapeHtml(location)}</option>`;
+      });
+
+      loadMemoRecords().then(records => {
+        const selected = eqSelect.value;
+        const equipments = [...new Set((records || []).map(record => record.equipment).filter(Boolean))].sort();
+        eqSelect.innerHTML = '<option value="">모든 장비</option>';
+        equipments.forEach(equipment => {
+          eqSelect.innerHTML += `<option value="${escapeHtml(equipment)}">${escapeHtml(equipment)}</option>`;
+        });
+        eqSelect.value = equipments.includes(selected) ? selected : '';
+      }).catch(() => {
+        eqSelect.innerHTML = '<option value="">모든 장비</option>';
+      });
+    }
+
+    function filterMemoRecords(records, query, loc, eq, days) {
+      // 2026-06-08 변경: 검색어 없이도 점검장소/장비/기간 필터만으로 결과를 표시합니다.
+      // 변경 전: 검색어가 없으면 무조건 빈 배열 반환. 변경 후: 검색어, 장소, 장비, 기본값이 아닌 기간 중 하나라도 있으면 검색합니다.
+      // 수치 변경: 기간 기본값 90일은 초기 상태로 유지하고, 180/365/3650일 선택 시 기간 필터로 인정합니다.
+      const periodChanged = Number(days || 90) !== 90;
+      const hasAnyFilter = !!query || !!loc || !!eq || periodChanged;
+      if (!hasAnyFilter) return [];
+
+      const cutoff = getDateCutoff(days);
+      return (records || []).filter(record => {
+        const memoText = String(record.memo || '').toLowerCase();
+        // 2026-06-08 변경: 검색 대상이 전체 기록에서 특이사항 메모만으로 좁아집니다.
+        // 변경 전: JSON.stringify(record) 때문에 장소/장비/점검자도 검색됨. 변경 후: record.memo만 검색됨.
+        const matchQuery = !query || memoText.includes(query);
+        const matchLocation = !loc || record.location === loc;
+        const matchEquipment = !eq || record.equipment === eq;
+        const matchPeriod = !cutoff || normalizeDateForCompare(record.date) >= cutoff;
+        return matchQuery && matchLocation && matchEquipment && matchPeriod;
+      });
+    }
+
+    function getDateCutoff(days) {
+      if (!days || days >= 3650) return '';
+      const date = new Date();
+      date.setDate(date.getDate() - days);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    function normalizeDateForCompare(value) {
+      return String(value || '').slice(0, 10);
+    }
+
+    function highlightMemoText(value, query) {
+      const safeText = escapeHtml(value || '');
+      if (!query) return safeText;
+      const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return safeText.replace(new RegExp(escapedQuery, 'gi'), match => `<span class="highlight">${match}</span>`);
+    }
+
+    function hasCountableMemo(value) {
+      const text = String(value || '').trim();
+      return !!text && text !== '-';
+    }
+
+    // ========================================================================
+    // 8. 설정과 탭
+    // ========================================================================
+    async function syncChecklist() {
+      const status = document.getElementById('settings-status');
+      status.textContent = '확인 중입니다.';
+      try {
+        const data = await requestJson({ action: 'syncChecklist', t: Date.now() });
+        status.textContent = `확인 완료: 장소 ${data.locations ? data.locations.length : 0}개`;
+        await loadInit();
+      } catch (err) {
+        status.textContent = err.message || '확인 실패';
+        status.className = 'save-status error';
+      }
+    }
+
+    function showTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(button => button.classList.toggle('active', button.dataset.tab === tab));
+      document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+      document.getElementById(`sec-${tab}`).classList.add('active');
+      if (tab === 'history') renderHistory();
+      if (tab === 'dashboard') loadDashboard();
+      if (tab === 'memo') renderMemoRecords();
+    }
+  </script>
+</body>
+
+</html>
