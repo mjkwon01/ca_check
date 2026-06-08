@@ -190,7 +190,7 @@
 
     .outdoor-location-card {
       width: 100%;
-      min-height: 20px;
+      min-height: 15px;
       padding: 0px 0px;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
@@ -217,7 +217,7 @@
       color: var(--text);
       font-size: 13px;
       font-weight: 600;
-      line-height: 1;
+      line-height: 0.6;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
@@ -231,7 +231,7 @@
 
     .outdoor-complete-tag {
       border-radius: 10px;
-      padding: 2px 6px;
+      padding: 0px 4px;
       background: rgba(46, 204, 113, 0.12);
       color: #1f8d48;
       font-size: 9px;
@@ -1427,10 +1427,54 @@
       min-width: 58px;
       color: var(--accent);
     }
+
+    /* ==========================================================================
+       7. 초기 앱 로딩
+       ========================================================================== */
+    /* 2026-06-08 신규: 초기 시스템 정보 로딩 중 빈 화면처럼 보이지 않도록 전체 화면 로딩 페이지를 표시합니다. */
+    #app-loading {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      transition: opacity 0.3s;
+    }
+
+    /* 2026-06-08 신규: AV/DID 앱과 같은 40px 로딩 스피너를 사용합니다. */
+    .spinner {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 16px;
+      border: 3px solid var(--surface2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-msg {
+      color: var(--text3);
+      font-size: 14px;
+    }
   </style>
 </head>
 
 <body>
+  <!-- 2026-06-08 신규: 앱 최초 진입 시 서버에서 시스템 정보를 받아올 때까지 표시합니다. -->
+  <div id="app-loading">
+    <div class="spinner"></div>
+    <div class="loading-msg">시스템 정보를 불러오는 중...</div>
+  </div>
+
   <div class="app">
     <!-- =====================================================================
          1. 상단 헤더
@@ -1649,8 +1693,24 @@
     document.addEventListener('DOMContentLoaded', initApp);
 
     async function initApp() {
-      loadInspectorName();
-      await loadInit();
+      const loading = document.getElementById('app-loading');
+      try {
+        loadInspectorName();
+        await loadInit();
+        if (loading) {
+          // 2026-06-08 신규: 초기 데이터 로딩 성공 후 0.3초 페이드아웃으로 로딩 화면을 닫습니다.
+          loading.style.opacity = '0';
+          setTimeout(() => {
+            loading.style.display = 'none';
+          }, 300);
+        }
+      } catch (err) {
+        console.error(err);
+        const message = document.querySelector('.loading-msg');
+        if (message) {
+          message.innerHTML = `시스템 정보를 불러오지 못했습니다.<br>${escapeHtml(err.message || '잠시 후 다시 시도해 주세요.')}<br><button class="btn-secondary" style="width:auto;min-height:40px;margin-top:16px;padding:0 16px;" onclick="location.reload()">다시 시도</button>`;
+        }
+      }
     }
 
     async function requestJson(params, options = {}) {
@@ -1684,6 +1744,8 @@
         renderHistoryFilter();
       } catch (err) {
         listEl.innerHTML = `<div class="empty">장소를 불러오지 못했습니다.<br>${escapeHtml(err.message)}</div>`;
+        // 2026-06-08 신규: 초기 로딩 실패를 initApp까지 전달해 로딩 화면에서 재시도 버튼을 보여줍니다.
+        throw err;
       }
     }
 
