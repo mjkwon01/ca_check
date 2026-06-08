@@ -2776,13 +2776,19 @@
     }
 
     function filterMemoRecords(records, query, loc, eq, days) {
-      // 2026-06-02 변경: 검색어가 없으면 검색 결과 카드를 표시하지 않습니다. 변경 전: 빈 검색어가 전체를 통과.
-      if (!query) return [];
+      // 2026-06-08 변경: 검색어 없이도 점검장소/장비/기간 필터만으로 결과를 표시합니다.
+      // 변경 전: 검색어가 없으면 무조건 빈 배열 반환. 변경 후: 검색어, 장소, 장비, 기본값이 아닌 기간 중 하나라도 있으면 검색합니다.
+      // 수치 변경: 기간 기본값 90일은 초기 상태로 유지하고, 180/365/3650일 선택 시 기간 필터로 인정합니다.
+      const periodChanged = Number(days || 90) !== 90;
+      const hasAnyFilter = !!query || !!loc || !!eq || periodChanged;
+      if (!hasAnyFilter) return [];
 
       const cutoff = getDateCutoff(days);
       return (records || []).filter(record => {
         const memoText = String(record.memo || '').toLowerCase();
-        const matchQuery = JSON.stringify(record).toLowerCase().includes(query) || memoText.includes(query);
+        // 2026-06-08 변경: 검색 대상이 전체 기록에서 특이사항 메모만으로 좁아집니다.
+        // 변경 전: JSON.stringify(record) 때문에 장소/장비/점검자도 검색됨. 변경 후: record.memo만 검색됨.
+        const matchQuery = !query || memoText.includes(query);
         const matchLocation = !loc || record.location === loc;
         const matchEquipment = !eq || record.equipment === eq;
         const matchPeriod = !cutoff || normalizeDateForCompare(record.date) >= cutoff;
