@@ -1547,6 +1547,10 @@
             </div>
             <div id="outdoor-body"><div class="empty">옥외 시설물 점검 데이터를 불러오는 중입니다.</div></div>
           </div>
+          <div class="card outdoor-memo-card">
+            <div class="section-title" style="margin-top:0;">점검 기록 (비고)</div>
+            <textarea class="run-memo-input" id="outdoor-location-memo" placeholder="선택한 옥외 장소의 특이사항을 입력합니다." oninput="setOutdoorLocationMemo(this.value)"></textarea>
+          </div>
           <div class="save-status" id="outdoor-save-status"></div>
           <button class="btn-primary" id="btn-outdoor-save" onclick="saveOutdoorResults()">옥외 시설물 저장</button>
           <button class="btn-secondary" style="margin-top:8px;" onclick="backToLocationSelect()">장소 선택으로 돌아가기</button>
@@ -1677,6 +1681,7 @@
     let complianceStatusFilter = '전체';
     let outdoorData = null;
     let outdoorResults = {};
+    let outdoorLocationMemos = {};
     let outdoorSelectedLocation = '';
     let outdoorGroupFilter = 'K1';
     // 2026-06-04 변경: 옥외 시설물은 별도 탭이 아니라 장소 선택 목록 맨 아래의 내부 진입값으로 처리합니다.
@@ -2158,12 +2163,23 @@
       try {
         outdoorData = await requestJson({ action: 'outdoor', t: Date.now() });
         outdoorResults = JSON.parse(JSON.stringify(outdoorData.results || {}));
+        outdoorLocationMemos = normalizeOutdoorLocationMemos(outdoorData.locationMemos || {});
         const visibleLocations = getVisibleOutdoorLocations();
         outdoorSelectedLocation = visibleLocations[0]?.name || outdoorData.locations?.[0]?.name || '';
         renderOutdoor();
       } catch (err) {
         body.innerHTML = `<div class="empty">옥외 시설물 데이터를 불러오지 못했습니다.<br>${escapeHtml(err.message)}</div>`;
       }
+    }
+
+    function normalizeOutdoorLocationMemos(locationMemos) {
+      // 2026-06-08 신규: GAS의 장소별 비고 객체를 화면에서 바로 쓰기 쉬운 문자열 맵으로 정리합니다.
+      // 변경 전: 옥외 비고를 화면 상태로 보관하지 않음. 변경 후: {장소명: 비고} 형태로 보관합니다.
+      const memos = {};
+      Object.entries(locationMemos || {}).forEach(([locationName, memoValue]) => {
+        memos[locationName] = typeof memoValue === 'string' ? memoValue : String(memoValue?.memo || '');
+      });
+      return memos;
     }
 
     function getOutdoorResult(sourceRow, locationName) {
@@ -2214,6 +2230,24 @@
     function setOutdoorLocation(locationName) {
       outdoorSelectedLocation = locationName;
       renderOutdoor();
+    }
+
+    function getOutdoorLocationMemo(locationName) {
+      return String(outdoorLocationMemos[locationName] || '');
+    }
+
+    function setOutdoorLocationMemo(value) {
+      // 2026-06-08 신규: 옥외 비고를 선택한 장소별로 따로 저장합니다.
+      // 변경 전: 비고 입력란 없음. 변경 후: 장소를 바꿔도 각 장소 비고가 섞이지 않습니다.
+      if (!outdoorSelectedLocation) return;
+      outdoorLocationMemos[outdoorSelectedLocation] = value;
+    }
+
+    function syncOutdoorLocationMemoInput() {
+      const input = document.getElementById('outdoor-location-memo');
+      if (!input) return;
+      const memo = outdoorSelectedLocation ? getOutdoorLocationMemo(outdoorSelectedLocation) : '';
+      if (input.value !== memo) input.value = memo;
     }
 
     function renderOutdoorGroupFilter() {
@@ -2298,6 +2332,7 @@
 
       html += '</div></div>';
       body.innerHTML = html;
+      syncOutdoorLocationMemoInput();
     }
 
     async function saveOutdoorResults() {
@@ -2332,7 +2367,8 @@
             action: 'outdoorSave',
             date: todayDateKey(),
             inspector,
-            items: payloadItems
+            items: payloadItems,
+            locationMemos: outdoorLocationMemos
           }),
           headers: { 'Content-Type': 'text/plain;charset=utf-8' }
         });
