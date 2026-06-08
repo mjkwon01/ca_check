@@ -230,13 +230,19 @@
       white-space: nowrap;
     }
 
+    /* 2026-06-08 변경: 미점검/점검완료와 불량률 텍스트의 시각 크기를 맞춥니다. */
+    /* 변경 전: 태그 padding 0px 0px, font-weight 500, 줄높이 기본값. 변경 후: min-height 16px, padding 0px 4px, font-weight 600, line-height 1. */
     .outdoor-complete-tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 16px;
       border-radius: 10px;
       padding: 0px 4px;
       background: rgba(46, 204, 113, 0.12);
       color: #1f8d48;
       font-size: 9px;
-      font-weight: 500;
+      font-weight: 600;
+      line-height: 1;
     }
 
     /* 2026-06-08 변경: 미점검 태그가 전역 .empty 스타일과 충돌하지 않도록 전용 클래스명을 사용합니다. */
@@ -246,10 +252,17 @@
       color: var(--text3);
     }
 
+    /* 2026-06-08 변경: 불량률도 태그와 같은 높이 기준으로 정렬합니다. */
+    /* 변경 전: 일반 텍스트 표시. 변경 후: min-height 16px, padding 0px 2px, font-weight 600, line-height 1. */
     .outdoor-defect-rate {
+      display: inline-flex;
+      align-items: center;
+      min-height: 16px;
+      padding: 0px 2px;
       color: var(--text);
       font-size: 9px;
-      font-weight: 500;
+      font-weight: 600;
+      line-height: 1;
     }
 
     .outdoor-defect-rate.ng {
@@ -654,15 +667,14 @@
     }
 
     .ca-detail-measure-label {
-      min-height: 28px;
-      margin-bottom: 4px;
-      color: var(--text3);
-      font-size: 11px;
-      font-weight: 700;
-      line-height: 1.2;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      min-height: 18px;
+      margin-bottom: 5px;
+      color: var(--surface);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.35;
+      overflow: visible;
+      white-space: normal;
     }
 
     .measure-wrap {
@@ -682,6 +694,18 @@
       border-radius: var(--radius-sm);
       background: var(--surface2);
       overflow: hidden;
+    }
+
+    /* 2026-06-08 신규: 상세측정 입력칸 안에도 측정명 라벨을 표시해 RF power/SNR/EVM/MER 입력 위치를 명확히 합니다. */
+    .ca-detail-measure-prefix {
+      flex: 0 0 auto;
+      min-width: 54px;
+      padding-left: 10px;
+      color: var(--surface);
+      font-size: 10px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
     }
 
     .measure-input {
@@ -1697,6 +1721,8 @@
       'SR3동 식당': 'K2',
       '6-1라인 스피커': 'K2',
     };
+    // 2026-06-08 신규: 상세측정 항목명이 비어 있거나 잘 보이지 않을 때 입력 순서 기준 기본 라벨을 사용합니다.
+    const CA_DETAIL_DEFAULT_LABELS = ['RF power', 'SNR', 'EVM', 'MER'];
 
     document.addEventListener('DOMContentLoaded', initApp);
 
@@ -1973,12 +1999,13 @@
               onclick="toggleCaDetailNg(${firstIdx}, '${detailItems.map(item => item.idx).join(',')}')">X</button>
           </div>
           <div class="ca-detail-grid">`;
-        detailItems.forEach(item => {
+        detailItems.forEach((item, detailIdx) => {
           const idx = item.idx;
-          const checkItemName = getItemCheckName(item);
+          const checkItemName = getCaDetailMeasureLabel(item, detailIdx);
           html += `<div class="ca-detail-measure-item">
             <div class="ca-detail-measure-label" title="${escapeHtml(checkItemName)}">${escapeHtml(checkItemName)}</div>
             <div class="ca-detail-measure-wrap">
+              <span class="ca-detail-measure-prefix">${escapeHtml(checkItemName)}</span>
               <input class="ca-detail-measure-input" id="measurement-${idx}" inputmode="numeric" pattern="[0-9]*"
                 placeholder="00.0" oninput="setCaDetailMeasurement(${idx}, this.value)">
             </div>
@@ -2014,6 +2041,14 @@
       return isCaOnuMeasurementItem(item) || isCaDetailMeasurementItem(item);
     }
 
+    function getCaDetailMeasureLabel(item, detailIndex) {
+      // 2026-06-08 신규: 상세측정 라벨을 RF power/SNR/EVM/MER 순서로 보강합니다.
+      // 변경 전: 원본 항목명이 비어 있거나 작게 잘리면 입력 위치를 알기 어려움. 변경 후: 기본 라벨을 항상 표시합니다.
+      const name = getItemCheckName(item).trim();
+      const defaultLabel = CA_DETAIL_DEFAULT_LABELS[detailIndex % CA_DETAIL_DEFAULT_LABELS.length];
+      return /rf|power|snr|evm|mer/i.test(name) ? name : defaultLabel || name;
+    }
+
     function getItemCheckName(item) {
       return item.checkItem || item.item || '';
     }
@@ -2026,7 +2061,9 @@
     // 4. 입력값 저장 상태
     // ========================================================================
     function setResult(idx, result) {
-      checkResults[idx].result = checkResults[idx].result === result && result === 'ng' ? 'ok' : result;
+      // 2026-06-08 변경: 같은 O/X 버튼을 한 번 더 누르면 선택 해제 상태가 되도록 바꿉니다.
+      // 변경 전: X 재터치 시 O로 복귀, O 재터치 시 유지. 변경 후: O/X 모두 재터치 시 빈값으로 저장됩니다.
+      checkResults[idx].result = checkResults[idx].result === result ? '' : result;
       const item = document.getElementById(`item-${idx}`);
       if (item) item.classList.toggle('result-ng', checkResults[idx].result === 'ng');
       const okButton = document.getElementById(`ok-${idx}`);
