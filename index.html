@@ -191,7 +191,7 @@
     .outdoor-location-card {
       width: 100%;
       min-height: 20px;
-      padding: 7px 8px;
+      padding: 0px 0px;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       background: var(--surface3);
@@ -238,7 +238,9 @@
       font-weight: 500;
     }
 
-    .outdoor-complete-tag.empty {
+    /* 2026-06-08 변경: 미점검 태그가 전역 .empty 스타일과 충돌하지 않도록 전용 클래스명을 사용합니다. */
+    /* 변경 전: .empty 클래스 때문에 padding 18px이 적용됨. 변경 후: .is-empty 전용 태그 스타일만 적용됨. */
+    .outdoor-complete-tag.is-empty {
       background: rgba(90, 95, 122, 0.10);
       color: var(--text3);
     }
@@ -2162,7 +2164,7 @@
 
     function renderOutdoorCompleteTag(summary) {
       const completed = summary.checkedCount > 0;
-      return `<span class="outdoor-complete-tag${completed ? '' : ' empty'}">${completed ? '점검완료' : '미점검'}</span>`;
+      return `<span class="outdoor-complete-tag${completed ? '' : ' is-empty'}">${completed ? '점검완료' : '미점검'}</span>`;
     }
 
     function renderOutdoorDefectRate(summary) {
