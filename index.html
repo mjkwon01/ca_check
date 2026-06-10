@@ -687,6 +687,26 @@
       overflow: hidden;
     }
 
+    /* 2026-06-10 신규: Optical ONU 수치를 양수에서 음수로 전환하는 전용 버튼입니다. */
+    /* 변경 전: 부호 버튼 없음. 변경 후: 너비 42px 버튼을 입력란 왼쪽에 추가합니다. */
+    .measure-sign-btn {
+      flex: 0 0 42px;
+      width: 42px;
+      height: 40px;
+      border: 0;
+      border-right: 1px solid var(--border);
+      background: transparent;
+      color: var(--text3);
+      font-size: 18px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .measure-sign-btn.active {
+      background: rgba(231, 76, 60, 0.16);
+      color: var(--ng);
+    }
+
     .ca-detail-measure-wrap {
       display: flex;
       align-items: center;
@@ -1089,12 +1109,23 @@
       color: var(--warn);
     }
 
+    .dash-card-value {
+      display: flex;
+      align-items: center;
+    }
+
     .dash-arrow {
       margin-left: 6px;
       color: var(--text3);
       font-size: 20px;
       font-weight: 800;
       transition: transform 0.15s;
+    }
+
+    .dash-arrow-placeholder {
+      /* 2026-06-09 변경: 첫 카드에도 동일한 화살표 자리를 확보합니다.
+         변경 전: 첫 카드 숫자가 오른쪽에 표시. 변경 후: 세 카드 숫자를 같은 위치에 정렬합니다. */
+      visibility: hidden;
     }
 
     .dash-arrow.rotated {
@@ -1979,14 +2010,21 @@
       const okBtn = measurementOnly ? '' : `<button class="check-btn ok ${result === 'ok' ? 'ok-active' : ''}" id="ok-${idx}" onclick="setResult(${idx}, 'ok')">O</button>`;
       const checkItemName = getItemCheckName(item);
       const methodText = getItemMethodText(item);
+      const isOnuMeasurement = isCaOnuMeasurementItem(item);
+      const measurementValue = checkResults[idx]?.measurementValue || '';
+      const signButtonHtml = isOnuMeasurement ? `
+            <button type="button" class="measure-sign-btn${String(measurementValue).startsWith('-') ? ' active' : ''}"
+              id="measurement-sign-${idx}" aria-label="ONU 측정값 음수 전환"
+              onclick="toggleMeasurementSign(${idx})">-</button>` : '';
       // 2026-06-08 변경: Optical ONU 입력란의 0000 -> 00.00 안내 문구를 제거합니다.
       // 변경 전: 입력란 오른쪽에 변환 안내 표시. 변경 후: placeholder 00.00만 표시합니다.
       const measureHtml = measurementOnly ? `
         <div class="measure-row">
           <div class="measure-wrap">
-            <input class="measure-input" id="measurement-${idx}" inputmode="numeric" pattern="[0-9]*"
-              value="${escapeHtml(checkResults[idx]?.measurementValue || '')}"
-              placeholder="${isCaOnuMeasurementItem(item) ? '00.00' : '00.0'}"
+            ${signButtonHtml}
+            <input class="measure-input" id="measurement-${idx}" inputmode="numeric" pattern="-?[0-9]*"
+              value="${escapeHtml(measurementValue)}"
+              placeholder="${isOnuMeasurement ? '00.00' : '00.0'}"
               oninput="setMeasurement(${idx}, this.value)">
           </div>
         </div>` : '';
@@ -2078,9 +2116,13 @@
     }
 
     function isCaDetailLocationItem(item) {
+      // 2026-06-10 변경: 서버에서 측정 위치로 표시한 행을 최우선으로 판별합니다.
+      // 변경 전: 화면에 전달된 문자열에 "측정 위치"가 남아 있을 때만 판별했습니다.
+      // 변경 후: isDetailLocation 표시 또는 기존 문자열 조건 중 하나만 맞아도 상세측정 그룹 맨 위에 표시합니다.
       // 2026-06-02 변경: "측정 위치"만 찾던 조건을 "측정위치"처럼 공백 없는 표기도 인식하게 바꿉니다.
       const text = [getItemCheckName(item), getItemMethodText(item), item.standard, item.equipment].join(' ');
-      return isCaDetailMeasurementItem(item) && /측정\s*위치/.test(text);
+      return item.isDetailLocation === true
+        || (isCaDetailMeasurementItem(item) && /측정\s*위치/.test(text));
     }
 
     function isCaOnuMeasurementItem(item) {
@@ -2133,11 +2175,42 @@
     }
 
     function setMeasurement(idx, value) {
-      const formatted = formatFixedDecimalDigits(value, 4, 2);
+      // 2026-06-10 변경: Optical ONU 입력값은 숫자 4자리와 소수점 2자리 규칙을 유지하면서 음수 부호도 보존합니다.
+      // 변경 전: 숫자가 아닌 "-"를 제거했습니다. 변경 후: 앞자리 "-"만 허용하고 숫자를 모두 지우면 부호도 해제합니다.
+      const formatted = formatOnuMeasurement(value);
       checkResults[idx].measurementValue = formatted;
-      checkResults[idx].result = formatted ? 'measurement' : null;
+      checkResults[idx].result = formatted && formatted !== '-' ? 'measurement' : null;
       const input = document.getElementById(`measurement-${idx}`);
       if (input && input.value !== formatted) input.value = formatted;
+      updateMeasurementSignButton(idx, formatted);
+    }
+
+    function toggleMeasurementSign(idx) {
+      const currentValue = String(checkResults[idx]?.measurementValue || '');
+      const unsignedValue = currentValue.replace(/^-/, '');
+      const nextValue = currentValue.startsWith('-') ? unsignedValue : `-${unsignedValue}`;
+      checkResults[idx].measurementValue = nextValue;
+      checkResults[idx].result = unsignedValue ? 'measurement' : null;
+
+      const input = document.getElementById(`measurement-${idx}`);
+      if (input) {
+        input.value = nextValue;
+        input.focus();
+      }
+      updateMeasurementSignButton(idx, nextValue);
+    }
+
+    function updateMeasurementSignButton(idx, value) {
+      const button = document.getElementById(`measurement-sign-${idx}`);
+      if (button) button.classList.toggle('active', String(value || '').startsWith('-'));
+    }
+
+    function formatOnuMeasurement(value) {
+      const rawValue = String(value || '');
+      const isNegative = rawValue.startsWith('-');
+      const unsignedValue = formatFixedDecimalDigits(rawValue, 4, 2);
+      if (!unsignedValue) return isNegative ? '-' : '';
+      return `${isNegative ? '-' : ''}${unsignedValue}`;
     }
 
     function setCaDetailMeasurement(idx, value) {
@@ -2687,7 +2760,10 @@
           <div class="dash-card-title">${escapeHtml(title)}</div>
           <div class="dash-card-sub">${escapeHtml(subText)}</div>
         </div>
-        <div class="dash-num ${numClass}">${value}</div>
+        <div class="dash-card-value">
+          <div class="dash-num ${numClass}">${value}</div>
+          <span class="dash-arrow dash-arrow-placeholder" aria-hidden="true">›</span>
+        </div>
       </div>`;
     }
 
@@ -2697,7 +2773,7 @@
           <div class="dash-card-title">${escapeHtml(title)}</div>
           <div class="dash-card-sub">${escapeHtml(subText)}</div>
         </div>
-        <div style="display:flex;align-items:center;">
+        <div class="dash-card-value">
           <div class="dash-num ${numClass}">${value}</div>
           <span class="dash-arrow${isOpen ? ' rotated' : ''}">›</span>
         </div>
