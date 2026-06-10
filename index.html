@@ -1832,7 +1832,10 @@
         grouped[group].push(item.location);
       });
 
-      if (!Object.keys(grouped).length) {
+      // 2026-06-10 변경: 일반 장소가 없어도 실제 옥외 시트가 있으면 옥외 버튼을 표시합니다.
+      // 변경 전: 일반 장소가 없으면 즉시 빈 목록을 표시했습니다.
+      // 변경 후: 일반 장소와 옥외 시트가 모두 없을 때만 빈 목록을 표시합니다.
+      if (!Object.keys(grouped).length && !appData.hasOutdoorSheet) {
         listEl.innerHTML = '<div class="empty">장소 목록이 없습니다.</div>';
         return;
       }
@@ -1847,12 +1850,17 @@
         });
         html += '</div></div>';
       });
-      html += `<div class="location-group">
-        <div class="location-group-title">옥외 시설물 점검</div>
-        <div class="location-grid">
-          <button class="location-btn" data-location="${OUTDOOR_ENTRY_LOCATION}" onclick="selectLocation('${encodeURIComponent(OUTDOOR_ENTRY_LOCATION)}')">옥외 시설물 점검</button>
-        </div>
-      </div>`;
+      // 2026-06-10 변경: 실제 원본에 옥외 시설물 점검 시트가 있을 때만 전용 버튼을 표시합니다.
+      // 변경 전: 시트가 없어도 옥외 시설물 점검 버튼을 항상 추가했습니다.
+      // 변경 후: GAS가 반환한 hasOutdoorSheet가 true일 때만 버튼을 추가합니다.
+      if (appData.hasOutdoorSheet) {
+        html += `<div class="location-group">
+          <div class="location-group-title">옥외 시설물 점검</div>
+          <div class="location-grid">
+            <button class="location-btn" data-location="${OUTDOOR_ENTRY_LOCATION}" onclick="selectLocation('${encodeURIComponent(OUTDOOR_ENTRY_LOCATION)}')">옥외 시설물 점검</button>
+          </div>
+        </div>`;
+      }
       listEl.innerHTML = html;
     }
 
